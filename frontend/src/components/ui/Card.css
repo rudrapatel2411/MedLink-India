@@ -1,0 +1,7 @@
+/* Card.css — MedLink India UI Primitive */
+.ui-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}

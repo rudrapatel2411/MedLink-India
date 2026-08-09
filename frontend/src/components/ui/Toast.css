@@ -1,0 +1,64 @@
+/* Toast.css — MedLink India UI Primitive */
+.ui-toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.ui-toast {
+  pointer-events: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-left-width: 3px;
+}
+
+.ui-toast-info     { border-left-color: var(--primary); }
+.ui-toast-success  { border-left-color: var(--status-success); }
+.ui-toast-warning  { border-left-color: var(--status-warning); }
+.ui-toast-danger   { border-left-color: var(--status-critical); }
+
+.ui-toast-content { flex: 1; min-width: 0; }
+
+.ui-toast-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.ui-toast-message {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.ui-toast-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.ui-toast-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}

@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/app');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -34,7 +34,7 @@ export default function LoginPage() {
     setPassword('12345');
     try {
       await login(demoEmail, '12345');
-      navigate('/');
+      navigate('/app');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Quick login failed.');
     } finally {
@@ -43,23 +43,25 @@ export default function LoginPage() {
   };
 
   const demoAccounts = [
-    { label: '🧑 Patient / Citizen', email: 'patient@gmail.com' },
-    { label: '👨‍⚕️ Doctor / Practitioner', email: 'doctor@gmail.com' },
-    { label: '🏥 Hospital Administrator', email: 'hospital@gmail.com' },
-    { label: '🧪 Lab Technician', email: 'lab@gmail.com' },
-    { label: '💊 Pharmacist', email: 'pharmacy@gmail.com' },
-    { label: '🚑 Ambulance Driver', email: 'ambulance@gmail.com' },
-    { label: '🩸 Blood Bank Manager', email: 'bloodbank@gmail.com' },
-    { label: '📜 Insurance TPA', email: 'insurance@gmail.com' },
-    { label: '🏛️ Government Health', email: 'govt@gmail.com' },
-    { label: '🛡️ Super Admin Console', email: 'admin@medlink.in' },
+    { label: 'Patient / Citizen',       email: 'patient@gmail.com'   },
+    { label: 'Doctor / Practitioner',   email: 'doctor@gmail.com'    },
+    { label: 'Hospital Administrator',  email: 'hospital@gmail.com'  },
+    { label: 'Lab Technician',          email: 'lab@gmail.com'       },
+    { label: 'Pharmacist',              email: 'pharmacy@gmail.com'  },
+    { label: 'Ambulance Driver',        email: 'ambulance@gmail.com' },
+    { label: 'Blood Bank Manager',      email: 'bloodbank@gmail.com' },
+    { label: 'Insurance TPA',           email: 'insurance@gmail.com' },
+    { label: 'Government Health',       email: 'govt@gmail.com'      },
+    { label: 'Super Admin Console',     email: 'admin@medlink.in'    },
   ];
 
   return (
     <div className="auth-page">
       <div className="auth-card glass-card-static animate-in" style={{ maxWidth: '440px' }}>
         <div className="auth-logo">
-          <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>🏥</div>
+          <div style={{ width: '48px', height: '48px', background: 'var(--primary-subtle)', border: '1px solid var(--primary-light)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
           <h1>MedLink India</h1>
           <p>Healthcare Operating System</p>
         </div>
@@ -118,9 +120,9 @@ export default function LoginPage() {
         </div>
 
         {/* Quick Demo Login Grid */}
-        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--primary-400)', textAlign: 'center', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 800 }}>
-            ⚡ Direct 1-Click Panel Login
+        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--primary)', textAlign: 'center', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+            Quick Demo Login
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {demoAccounts.map((acc) => (
