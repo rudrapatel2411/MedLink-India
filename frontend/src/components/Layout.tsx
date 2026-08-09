@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Language } from '../utils/translations';
-import { LogOut, User, Globe, Bell, X } from 'lucide-react';
+import { LogOut, User, Globe, Bell, X,
+  UserCircle, Stethoscope, Building2, FlaskConical, Pill,
+  Ambulance, Droplets, FileText, Landmark, Handshake, Settings, ShieldCheck
+} from 'lucide-react';
 import { getSocket } from '../services/socket';
 
 interface LayoutProps {
@@ -21,18 +24,18 @@ interface NotificationToast {
 }
 
 const ROLES = [
-  { key: 'PATIENT', labelKey: 'role_PATIENT', emoji: '🧑' },
-  { key: 'DOCTOR', labelKey: 'role_DOCTOR', emoji: '👨‍⚕️' },
-  { key: 'HOSPITAL_ADMIN', labelKey: 'role_HOSPITAL_ADMIN', emoji: '🏥' },
-  { key: 'LAB_TECHNICIAN', labelKey: 'role_LAB_TECHNICIAN', emoji: '🧪' },
-  { key: 'PHARMACIST', labelKey: 'role_PHARMACIST', emoji: '💊' },
-  { key: 'AMBULANCE_DRIVER', labelKey: 'role_AMBULANCE_DRIVER', emoji: '🚑' },
-  { key: 'BLOOD_BANK_MANAGER', labelKey: 'role_BLOOD_BANK_MANAGER', emoji: '🩸' },
-  { key: 'INSURANCE_TPA', labelKey: 'role_INSURANCE_TPA', emoji: '📜' },
-  { key: 'GOVT_OFFICIAL', labelKey: 'role_GOVT_OFFICIAL', emoji: '🏛️' },
-  { key: 'NGO_WORKER', labelKey: 'role_NGO_WORKER', emoji: '🤝' },
-  { key: 'PLATFORM_ADMIN', labelKey: 'role_PLATFORM_ADMIN', emoji: '⚙️' },
-  { key: 'SUPER_ADMIN', labelKey: 'role_SUPER_ADMIN', emoji: '🛡️' },
+  { key: 'PATIENT',           labelKey: 'role_PATIENT',           Icon: UserCircle   },
+  { key: 'DOCTOR',            labelKey: 'role_DOCTOR',            Icon: Stethoscope  },
+  { key: 'HOSPITAL_ADMIN',    labelKey: 'role_HOSPITAL_ADMIN',    Icon: Building2    },
+  { key: 'LAB_TECHNICIAN',    labelKey: 'role_LAB_TECHNICIAN',    Icon: FlaskConical },
+  { key: 'PHARMACIST',        labelKey: 'role_PHARMACIST',        Icon: Pill         },
+  { key: 'AMBULANCE_DRIVER',  labelKey: 'role_AMBULANCE_DRIVER',  Icon: Ambulance    },
+  { key: 'BLOOD_BANK_MANAGER',labelKey: 'role_BLOOD_BANK_MANAGER',Icon: Droplets     },
+  { key: 'INSURANCE_TPA',     labelKey: 'role_INSURANCE_TPA',     Icon: FileText     },
+  { key: 'GOVT_OFFICIAL',     labelKey: 'role_GOVT_OFFICIAL',     Icon: Landmark     },
+  { key: 'NGO_WORKER',        labelKey: 'role_NGO_WORKER',        Icon: Handshake    },
+  { key: 'PLATFORM_ADMIN',    labelKey: 'role_PLATFORM_ADMIN',    Icon: Settings     },
+  { key: 'SUPER_ADMIN',       labelKey: 'role_SUPER_ADMIN',       Icon: ShieldCheck  },
 ];
 
 export default function Layout({ children, activeRole, onRoleChange }: LayoutProps) {
@@ -136,14 +139,14 @@ export default function Layout({ children, activeRole, onRoleChange }: LayoutPro
       <nav className="navbar">
         <div className="navbar-inner">
           <a href="/" className="navbar-brand" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-            <div className="logo-icon">🏥</div>
-            <span>MedLink <span style={{ color: 'var(--primary-400)', fontWeight: 400 }}>India</span></span>
+            <div className="logo-icon"><Building2 size={16} strokeWidth={2} /></div>
+            <span>MedLink <span style={{ color: 'var(--primary)', fontWeight: 400 }}>India</span></span>
           </a>
 
           {/* Role Indicator Badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(6, 182, 212, 0.08)', padding: '6px 14px', borderRadius: 'var(--radius-full)', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
-            <span>{activeRoleObj.emoji}</span>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-300)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--primary-subtle)', padding: '6px 14px', borderRadius: 'var(--radius-full)', border: '1px solid var(--primary-light)' }}>
+            {(() => { const RoleIcon = activeRoleObj.Icon; return <RoleIcon size={14} strokeWidth={2} style={{ color: 'var(--primary)' }} />; })()}
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {t(activeRoleObj.labelKey)}
             </span>
           </div>
@@ -175,9 +178,9 @@ export default function Layout({ children, activeRole, onRoleChange }: LayoutPro
                   outline: 'none',
                 }}
               >
-                <option value="en">🌐 English</option>
-                <option value="hi">🇮🇳 हिंदी (Hindi)</option>
-                <option value="gu">🇮🇳 ગુજરાતી (Gujarati)</option>
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="gu">Gujarati</option>
               </select>
             </div>
 
@@ -192,12 +195,12 @@ export default function Layout({ children, activeRole, onRoleChange }: LayoutPro
                 <div
                   style={{
                     position: 'absolute', right: 0, top: '100%', marginTop: '8px',
-                    background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)',
+                    background: 'var(--bg-surface)', border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-md)', padding: '8px', minWidth: '180px',
                     boxShadow: 'var(--shadow-lg)', zIndex: 150
                   }}
                 >
-                  <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-glass)', marginBottom: '4px' }}>
+                  <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
                     <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{user?.firstName} {user?.lastName}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user?.role}</div>
                   </div>
@@ -225,16 +228,19 @@ export default function Layout({ children, activeRole, onRoleChange }: LayoutPro
       {/* 12-Role Switcher Bar */}
       <div className="role-switcher">
         <div className="role-switcher-inner">
-          {ROLES.map((role) => (
-            <button
-              key={role.key}
-              className={`role-tab ${activeRole === role.key ? 'active' : ''}`}
-              onClick={() => onRoleChange(role.key)}
-            >
-              <span className="tab-icon">{role.emoji}</span>
-              {t(role.labelKey)}
-            </button>
-          ))}
+            {ROLES.map((role) => {
+              const RoleIcon = role.Icon;
+              return (
+                <button
+                  key={role.key}
+                  className={`role-tab ${activeRole === role.key ? 'active' : ''}`}
+                  onClick={() => onRoleChange(role.key)}
+                >
+                  <RoleIcon size={14} strokeWidth={2} className="tab-icon" />
+                  {t(role.labelKey)}
+                </button>
+              );
+            })}
         </div>
       </div>
 

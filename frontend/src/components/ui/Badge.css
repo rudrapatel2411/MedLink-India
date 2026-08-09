@@ -1,0 +1,60 @@
+/* Badge.css — MedLink India UI Primitive */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.ui-badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.ui-badge-success {
+  background: #EAF2EB;
+  color: var(--status-success);
+  border-color: #C2DCCA;
+}
+
+.ui-badge-warning {
+  background: #FBF3E4;
+  color: var(--status-warning);
+  border-color: #E8CFA0;
+}
+
+.ui-badge-alert {
+  background: #F9EDE6;
+  color: var(--status-alert);
+  border-color: #E3B898;
+}
+
+.ui-badge-critical {
+  background: #F7E8E6;
+  color: var(--status-critical);
+  border-color: #D9A09A;
+  animation: pulse-critical 2s ease-in-out infinite;
+}
+
+.ui-badge-neutral {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.ui-badge-primary {
+  background: var(--primary-subtle);
+  color: var(--primary);
+  border-color: var(--primary-light);
+}
