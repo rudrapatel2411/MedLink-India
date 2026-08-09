@@ -1,0 +1,373 @@
+// MedLink India — Prisma Schema (Full Platform: Phase 1, 2, 3, 4)
+// Database: SQLite (zero-config) — Easily swappable to PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  phone         String?
+  role          String   @default("PATIENT")
+  firstName     String
+  lastName      String
+  avatar        String?
+  isActive      Boolean  @default(true)
+  isVerified    Boolean  @default(false)
+  abhaId        String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  patientProfile        PatientProfile?
+  doctorProfile         DoctorProfile?
+  appointmentsAsPatient Appointment[]   @relation("PatientAppointments")
+  appointmentsAsDoctor  Appointment[]   @relation("DoctorAppointments")
+  prescriptionsAsPatient Prescription[]  @relation("PatientPrescriptions")
+  prescriptionsAsDoctor Prescription[]  @relation("DoctorPrescriptions")
+  healthRecords         HealthRecord[]
+  symptomChecks         SymptomCheck[]
+  sentConsents          ConsentRequest[] @relation("ConsentSender")
+  receivedConsents      ConsentRequest[] @relation("ConsentReceiver")
+
+  @@map("users")
+}
+
+model PatientProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  dateOfBirth       String?
+  gender            String?
+  bloodGroup        String?
+  height            Float?
+  weight            Float?
+  allergies         String?
+  chronicConditions String?
+  emergencyContact  String?
+  address           String?
+  city              String?
+  state             String?
+  pincode           String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("patient_profiles")
+}
+
+model DoctorProfile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  specialization      String?
+  qualification       String?
+  experience          Int?
+  registrationNo      String?
+  consultationFee     Float?
+  availableFrom       String?
+  availableTo         String?
+  availableDays       String?
+  hospitalAffiliation String?
+  bio                 String?
+  rating              Float?   @default(0)
+  totalConsultations  Int?    @default(0)
+  isAvailableNow      Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("doctor_profiles")
+}
+
+model Appointment {
+  id              String   @id @default(uuid())
+  patientId       String
+  doctorId        String
+  scheduledDate   String
+  scheduledTime   String
+  type            String   @default("OPD")
+  status          String   @default("SCHEDULED")
+  tokenNumber     Int?
+  chiefComplaint  String?
+  notes           String?
+  vitals          String?
+  diagnosis       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient         User     @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor          User     @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  prescriptions   Prescription[]
+
+  @@map("appointments")
+}
+
+model Prescription {
+  id              String   @id @default(uuid())
+  appointmentId   String?
+  patientId       String
+  doctorId        String
+  diagnosis       String?
+  notes           String?
+  status          String   @default("ACTIVE")
+  validUntil      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
+  patient         User     @relation("PatientPrescriptions", fields: [patientId], references: [id])
+  doctor          User     @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
+  medicines       PrescriptionMedicine[]
+
+  @@map("prescriptions")
+}
+
+model PrescriptionMedicine {
+  id              String   @id @default(uuid())
+  prescriptionId  String
+  medicineName    String
+  dosage          String
+  frequency       String
+  duration        String
+  instructions    String?
+  quantity        Int?
+
+  prescription    Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@map("prescription_medicines")
+}
+
+model HealthRecord {
+  id              String   @id @default(uuid())
+  userId          String
+  recordType      String
+  title           String
+  description     String?
+  fileUrl         String?
+  fileType        String?
+  metadata        String?
+  isShared        Boolean  @default(false)
+  tags            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("health_records")
+}
+
+model ConsentRequest {
+  id              String   @id @default(uuid())
+  requesterId     String
+  patientId       String
+  purpose         String
+  recordTypes     String
+  status          String   @default("PENDING")
+  grantedAt       DateTime?
+  expiresAt       DateTime?
+  duration        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  requester       User     @relation("ConsentSender", fields: [requesterId], references: [id])
+  patient         User     @relation("ConsentReceiver", fields: [patientId], references: [id])
+
+  @@map("consent_requests")
+}
+
+model SymptomCheck {
+  id                 String   @id @default(uuid())
+  userId             String
+  symptoms           String
+  riskLevel          String
+  triageResult       String?
+  suggestedAction    String?
+  suggestedSpecialty String?
+  createdAt          DateTime @default(now())
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("symptom_checks")
+}
+
+// ─────────────────────────────────────────────────────────
+// PHASE 2: EMERGENCY, HOSPITALS, AMBULANCES, BLOOD BANKS
+// ─────────────────────────────────────────────────────────
+
+model Hospital {
+  id                  String   @id @default(uuid())
+  name                String
+  code                String   @unique
+  city                String
+  state               String
+  address             String
+  phone               String
+  totalBeds           Int      @default(100)
+  availableBeds       Int      @default(30)
+  icuBedsAvailable    Int      @default(5)
+  oxygenBedsAvailable Int      @default(12)
+  emergencyStatus     String   @default("GREEN") // GREEN, AMBER, RED (FULL)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  bedAllocations      BedAllocation[]
+
+  @@map("hospitals")
+}
+
+model BedAllocation {
+  id              String   @id @default(uuid())
+  hospitalId      String
+  patientName     String
+  bedType         String   // ICU, OXYGEN, NORMAL
+  bedNumber       String
+  status          String   @default("ALLOCATED") // ALLOCATED, DISCHARGED
+  allocatedAt     DateTime @default(now())
+  dischargedAt    DateTime?
+
+  hospital        Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@map("bed_allocations")
+}
+
+model EmergencySOS {
+  id                  String   @id @default(uuid())
+  patientName         String
+  patientPhone        String
+  latitude            Float
+  longitude           Float
+  address             String
+  riskLevel           String   @default("CRITICAL")
+  status              String   @default("ACTIVE") // ACTIVE, DISPATCHED, ARRIVED, RESOLVED
+  assignedAmbulanceNo String?
+  assignedHospitalName String?
+  bloodGroupNeeded    String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("emergency_sos")
+}
+
+model Ambulance {
+  id              String   @id @default(uuid())
+  vehicleNo       String   @unique
+  driverName      String
+  driverPhone     String
+  currentLat      Float
+  currentLng      Float
+  isAvailable     Boolean  @default(true)
+  status          String   @default("IDLE") // IDLE, EN_ROUTE, PATIENT_ONBOARD
+  hospitalName    String?
+  updatedAt       DateTime @updatedAt
+
+  @@map("ambulances")
+}
+
+model BloodBank {
+  id              String   @id @default(uuid())
+  name            String
+  city            String
+  address         String
+  phone           String
+  stockJson       String   // JSON: { "A+": 12, "B+": 18, "O-": 4, "AB+": 9, "Plasma": 15, "Platelets": 20 }
+  updatedAt       DateTime @updatedAt
+
+  @@map("blood_banks")
+}
+
+model BloodRequest {
+  id              String   @id @default(uuid())
+  patientName     String
+  bloodBankId     String
+  bloodGroup      String
+  unitsNeeded     Int
+  urgency         String   @default("HIGH") // NORMAL, HIGH, CRITICAL
+  status          String   @default("PENDING") // PENDING, APPROVED, DISPATCHED, FULFILLED
+  createdAt       DateTime @default(now())
+
+  @@map("blood_requests")
+}
+
+// ─────────────────────────────────────────────────────────
+// PHASE 3: DIAGNOSTIC LABS & E-PHARMACY
+// ─────────────────────────────────────────────────────────
+
+model LabReport {
+  id                  String   @id @default(uuid())
+  patientName         String
+  patientId           String?
+  testName            String
+  category            String   // HAEMATOLOGY, BIOCHEMISTRY, CARDIAC, MICROBIOLOGY
+  metricsJson         String   // JSON: { "Hemoglobin": "13.5 g/dL", "WBC": "8200 /uL", "Troponin I": "0.02 ng/mL" }
+  isCritical          Boolean  @default(false)
+  criticalMessage     String?
+  reportStatus        String   @default("COMPLETED")
+  createdAt           DateTime @default(now())
+
+  @@map("lab_reports")
+}
+
+model PharmacyInventory {
+  id              String   @id @default(uuid())
+  medicineName    String
+  batchNo         String
+  category        String   // ANTIBIOTIC, ANALGESIC, CARDIAC, DIABETIC
+  quantity        Int
+  unitPrice       Float
+  expiryDate      String   // ISO date string
+  manufacturer    String?
+  updatedAt       DateTime @updatedAt
+
+  @@map("pharmacy_inventory")
+}
+
+model PharmacyOrder {
+  id              String   @id @default(uuid())
+  patientName     String
+  patientPhone    String
+  medicinesJson   String   // JSON array of items with qty and price
+  totalAmount     Float
+  status          String   @default("VERIFIED") // PENDING, VERIFIED, DISPATCHED, DELIVERED
+  deliveryAddress String
+  createdAt       DateTime @default(now())
+
+  @@map("pharmacy_orders")
+}
+
+// ─────────────────────────────────────────────────────────
+// PHASE 4: INSURANCE CLAIMS & GOVT ANALYTICS
+// ─────────────────────────────────────────────────────────
+
+model InsuranceClaim {
+  id              String   @id @default(uuid())
+  claimNumber     String   @unique
+  patientName     String
+  hospitalName    String
+  policyNumber    String
+  claimAmount     Float
+  diagnosisCode   String
+  status          String   @default("PRE_APPROVED") // PENDING, PRE_APPROVED, REJECTED, SETTLED
+  auditLogsJson   String?  // JSON array of rule checks
+  createdAt       DateTime @default(now())
+
+  @@map("insurance_claims")
+}
+
+model DiseaseOutbreak {
+  id              String   @id @default(uuid())
+  district        String
+  state           String
+  diseaseName     String   // DENGUE, MALARIA, CHOLERA, COVID19
+  activeCases     Int
+  riskLevel       String   // MODERATE, HIGH, SEVERE
+  updatedAt       DateTime @updatedAt
+
+  @@map("disease_outbreaks")
+}

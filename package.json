@@ -1,0 +1,15 @@
+{
+  "name": "medlink-india",
+  "version": "1.0.0",
+  "description": "MedLink India — Next-Generation Integrated Healthcare Operating System (HCOSaaS)",
+  "scripts": {
+    "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-template \"[{name}]\" -c \"cyan,magenta\" \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "seed": "cd backend && npm run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
