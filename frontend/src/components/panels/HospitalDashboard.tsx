@@ -44,7 +44,7 @@ export default function HospitalDashboard() {
     }
   };
 
-  if (loading) return <div className="page-loader"><div className="spinner" /><span>Loading ER & Bed Matrix...</span></div>;
+  if (loading) return <div className="page-loader"><div className="spinner" /><span>{t('loading')}</span></div>;
 
   const totalAvailable = hospitals.reduce((acc, h) => acc + (h.availableBeds || 0), 0);
   const totalICU = hospitals.reduce((acc, h) => acc + (h.icuBedsAvailable || 0), 0);
@@ -65,10 +65,10 @@ export default function HospitalDashboard() {
               <div style={{ fontSize: '1.5rem' }}>🚨</div>
               <div>
                 <h3 style={{ fontWeight: 800, color: 'var(--risk-critical)' }}>
-                  {criticalCalls.length} Incoming Trauma Pre-Arrival Alert(s)
+                  {criticalCalls.length} {t('traumaAlert')}
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Trauma Bay #1 notified. Prepare ICU & Oxygen Bay immediately.
+                  {t('traumaSubtitle')}
                 </p>
               </div>
             </div>
@@ -79,10 +79,10 @@ export default function HospitalDashboard() {
                 <div>
                   <span style={{ fontWeight: 700 }}>{sos.patientName}</span> ({sos.patientPhone}) · <span style={{ color: 'var(--risk-high)' }}>{sos.address}</span>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    Assigned Ambulance: {sos.assignedAmbulanceNo} · Blood Needed: <span style={{ color: '#f87171', fontWeight: 700 }}>{sos.bloodGroupNeeded || 'Any'}</span>
+                    {t('assignedVehicle')}: {sos.assignedAmbulanceNo} · {t('bloodGroup')}: <span style={{ color: '#f87171', fontWeight: 700 }}>{sos.bloodGroupNeeded || 'Any'}</span>
                   </div>
                 </div>
-                <span className="badge badge-risk-critical">{sos.status}</span>
+                <span className="badge badge-risk-critical">{t(sos.status) || sos.status}</span>
               </div>
             ))}
           </div>
@@ -107,7 +107,7 @@ export default function HospitalDashboard() {
         </div>
         <div className="glass-card stat-card stat-amber">
           <div className="stat-card-header">
-            <span className="stat-card-label">Active Emergency Alerts</span>
+            <span className="stat-card-label">{t('alert')}</span>
             <div className="stat-card-icon"><ShieldAlert size={18} /></div>
           </div>
           <div className="stat-card-value">{criticalCalls.length}</div>
@@ -116,7 +116,7 @@ export default function HospitalDashboard() {
 
       {/* Hospital Bed Matrix */}
       <div className="section-header">
-        <h3 className="section-title">🏥 Hospital Live Bed Matrix</h3>
+        <h3 className="section-title">🏥 {t('hospitalSubtitle')}</h3>
       </div>
       <div className="dashboard-grid dashboard-grid-2">
         {hospitals.map(h => (
@@ -127,21 +127,21 @@ export default function HospitalDashboard() {
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{h.address}, {h.city} · 📞 {h.phone}</p>
               </div>
               <span className={`badge ${h.emergencyStatus === 'GREEN' ? 'badge-completed' : 'badge-risk-high'}`}>
-                {h.emergencyStatus} STATUS
+                {h.emergencyStatus} {t('status')}
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '16px', textOverflow: 'ellipsis' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '16px' }}>
               <div style={{ background: 'rgba(6, 182, 212, 0.08)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Ward Beds</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('wardBeds')}</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-400)' }}>{h.availableBeds}/{h.totalBeds}</div>
               </div>
               <div style={{ background: 'rgba(239, 68, 68, 0.08)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ICU Beds</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('icuBeds')}</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f87171' }}>{h.icuBedsAvailable}</div>
               </div>
               <div style={{ background: 'rgba(16, 185, 129, 0.08)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Oxygen Beds</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('oxygenBeds')}</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-400)' }}>{h.oxygenBedsAvailable}</div>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function HospitalDashboard() {
                 });
               }}
             >
-              <Edit2 size={14} /> Update Bed Availability Dynamically
+              <Edit2 size={14} /> {t('updateBeds')}
             </button>
           </div>
         ))}
@@ -169,22 +169,22 @@ export default function HospitalDashboard() {
       {editingHospital && (
         <div className="modal-overlay" onClick={() => setEditingHospital(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>Update Beds for {editingHospital.name}</h3>
+            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>{t('updateBedTitle')} — {editingHospital.name}</h3>
             <form onSubmit={handleUpdateBeds} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="input-group">
-                <label>Available Ward Beds</label>
+                <label>{t('availableBedsLabel')}</label>
                 <input className="input" type="number" value={editForm.availableBeds} onChange={e => setEditForm({ ...editForm, availableBeds: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label>Available ICU Beds</label>
+                <label>{t('icuAvailableLabel')}</label>
                 <input className="input" type="number" value={editForm.icuBedsAvailable} onChange={e => setEditForm({ ...editForm, icuBedsAvailable: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label>Available Oxygen Beds</label>
+                <label>{t('oxygenAvailableLabel')}</label>
                 <input className="input" type="number" value={editForm.oxygenBedsAvailable} onChange={e => setEditForm({ ...editForm, oxygenBedsAvailable: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label>ER Status</label>
+                <label>{t('emergencyStatus')}</label>
                 <select className="input" value={editForm.emergencyStatus} onChange={e => setEditForm({ ...editForm, emergencyStatus: e.target.value })}>
                   <option value="GREEN">🟢 GREEN (Accepting Patients)</option>
                   <option value="AMBER">🟡 AMBER (Limited Capacity)</option>
@@ -192,8 +192,8 @@ export default function HospitalDashboard() {
                 </select>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setEditingHospital(null)} style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Save Changes</button>
+                <button type="button" className="btn btn-ghost" onClick={() => setEditingHospital(null)} style={{ flex: 1 }}>{t('cancel')}</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>{t('save')}</button>
               </div>
             </form>
           </div>

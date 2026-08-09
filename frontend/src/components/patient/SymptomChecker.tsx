@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { symptomAPI } from '../../services/api';
 import { Brain, Plus, Stethoscope } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const COMMON_SYMPTOMS = [
   'Fever', 'Headache', 'Cough', 'Chest Pain', 'Breathing Difficulty',
@@ -12,6 +13,7 @@ const COMMON_SYMPTOMS = [
 ];
 
 export default function SymptomChecker() {
+  const { t } = useLanguage();
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [customSymptom, setCustomSymptom] = useState('');
   const [result, setResult] = useState<any>(null);
@@ -64,7 +66,7 @@ export default function SymptomChecker() {
   return (
     <div>
       <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-        Select your symptoms below for an AI-assisted preliminary risk assessment.
+        {t('selectSymptoms')}
       </p>
 
       {/* Selected Symptoms */}
@@ -83,7 +85,7 @@ export default function SymptomChecker() {
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
         <input
           className="input"
-          placeholder="Type a symptom..."
+          placeholder={t('customSymptomPlaceholder')}
           value={customSymptom}
           onChange={e => setCustomSymptom(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && addCustomSymptom()}
@@ -93,7 +95,7 @@ export default function SymptomChecker() {
 
       {/* Common Symptoms Grid */}
       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
-        Common Symptoms
+        {t('selectSymptoms')}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
         {COMMON_SYMPTOMS.map(s => (
@@ -116,7 +118,7 @@ export default function SymptomChecker() {
         onClick={handleCheck}
         disabled={loading || selectedSymptoms.length === 0}
       >
-        {loading ? <div className="spinner" /> : <><Brain size={18} /> Analyze Symptoms ({selectedSymptoms.length})</>}
+        {loading ? <div className="spinner" /> : <><Brain size={18} /> {t('checkSymptoms')} ({selectedSymptoms.length})</>}
       </button>
 
       {/* Result */}
@@ -126,28 +128,28 @@ export default function SymptomChecker() {
             <div className="triage-score">{result.urgencyScore}/10</div>
             <div>
               <div style={{ fontWeight: 800, fontSize: '1.25rem', color: getRiskColor(result.riskLevel) }}>
-                {result.riskLevel} RISK
+                {result.riskLevel} {t('riskLevel')}
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Urgency Score</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t('triageLevel')}</div>
             </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '6px' }}>Recommended Action</div>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '6px' }}>{t('actions')}</div>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{result.suggestedAction}</p>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '6px' }}>
               <Stethoscope size={14} style={{ display: 'inline', marginRight: '4px' }} />
-              Suggested Specialist
+              {t('recommendedSpecialist')}
             </div>
             <span className="badge badge-scheduled">{result.suggestedSpecialty}</span>
           </div>
 
           {result.possibleConditions?.length > 0 && (
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '6px' }}>Possible Conditions</div>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '6px' }}>{t('details')}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {result.possibleConditions.map((c: string) => (
                   <span key={c} className="badge badge-in-queue">{c}</span>

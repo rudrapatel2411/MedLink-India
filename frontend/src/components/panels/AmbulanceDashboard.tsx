@@ -39,7 +39,7 @@ export default function AmbulanceDashboard() {
     }
   };
 
-  if (loading) return <div className="page-loader"><div className="spinner" /><span>Connecting to Ambulance Fleet GPS...</span></div>;
+  if (loading) return <div className="page-loader"><div className="spinner" /><span>{t('connectingGps')}</span></div>;
 
   return (
     <div>
@@ -50,12 +50,12 @@ export default function AmbulanceDashboard() {
 
       {/* Active Emergency Dispatch Calls */}
       <div className="section-header">
-        <h3 className="section-title">🚨 Active Emergency Dispatch Dispatch Calls</h3>
+        <h3 className="section-title">🚨 {t('activeDispatchCalls')}</h3>
       </div>
       {activeSOS.length === 0 ? (
         <div className="glass-card-static empty-state" style={{ marginBottom: '28px' }}>
           <div className="empty-state-icon">🚑</div>
-          <p className="empty-state-title">No active dispatch emergency calls</p>
+          <p className="empty-state-title">{t('noActiveCalls')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
@@ -64,31 +64,31 @@ export default function AmbulanceDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span className="badge badge-risk-critical">{sos.status}</span>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>📍 GPS: {sos.latitude}, {sos.longitude}</span>
+                    <span className="badge badge-risk-critical">{t(sos.status) || sos.status}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>📍 {t('gpsCoordinates')}: {sos.latitude}, {sos.longitude}</span>
                   </div>
                   <h4 style={{ fontWeight: 800, fontSize: '1.1rem', marginTop: '6px' }}>{sos.patientName} ({sos.patientPhone})</h4>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '2px' }}>{sos.address}</p>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-                    Assigned Vehicle: <span style={{ color: 'var(--primary-400)', fontWeight: 700 }}>{sos.assignedAmbulanceNo || 'Auto-dispatching'}</span>
-                    {' · '}Hospital Destination: <span style={{ color: 'var(--accent-400)', fontWeight: 700 }}>{sos.assignedHospitalName || 'Triage in progress'}</span>
+                    {t('assignedVehicle')}: <span style={{ color: 'var(--primary-400)', fontWeight: 700 }}>{sos.assignedAmbulanceNo || 'Auto-dispatching'}</span>
+                    {' · '}{t('hospitalDestination')}: <span style={{ color: 'var(--accent-400)', fontWeight: 700 }}>{sos.assignedHospitalName || 'Triage in progress'}</span>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {sos.status === 'ACTIVE' && (
                     <button className="btn btn-primary btn-sm" onClick={() => handleStatusToggle(sos.id, 'DISPATCHED')}>
-                      <Navigation size={14} /> Dispatch Ambulance
+                      <Navigation size={14} /> {t('dispatchAmbulance')}
                     </button>
                   )}
                   {sos.status === 'DISPATCHED' && (
                     <button className="btn btn-accent btn-sm" onClick={() => handleStatusToggle(sos.id, 'ARRIVED')}>
-                      <CheckCircle2 size={14} /> Mark Arrived at Scene
+                      <CheckCircle2 size={14} /> {t('markArrived')}
                     </button>
                   )}
                   {sos.status === 'ARRIVED' && (
                     <button className="btn btn-ghost btn-sm" onClick={() => handleStatusToggle(sos.id, 'RESOLVED')}>
-                      Patient Handed to ER
+                      {t('patientHandedER')}
                     </button>
                   )}
                 </div>
@@ -100,7 +100,7 @@ export default function AmbulanceDashboard() {
 
       {/* Fleet Status */}
       <div className="section-header">
-        <h3 className="section-title">📡 Active Ambulance Fleet Status</h3>
+        <h3 className="section-title">📡 {t('role_AMBULANCE_DRIVER')}</h3>
       </div>
       <div className="dashboard-grid dashboard-grid-2">
         {fleet.map(amb => (
@@ -116,12 +116,12 @@ export default function AmbulanceDashboard() {
                 </div>
               </div>
               <span className={`badge ${amb.isAvailable ? 'badge-completed' : 'badge-risk-critical'}`}>
-                {amb.status}
+                {t(amb.status) || amb.status}
               </span>
             </div>
 
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: '10px', borderRadius: 'var(--radius-sm)' }}>
-              Hospital Base: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{amb.hospitalName}</span>
+              {t('hospital')}: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{amb.hospitalName}</span>
             </div>
           </div>
         ))}

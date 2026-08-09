@@ -36,7 +36,7 @@ export default function BloodBankDashboard() {
     e.preventDefault();
     try {
       await hospitalAPI.requestBlood(requestForm);
-      setRequestSuccess(`🚨 Urgent ${requestForm.unitsNeeded} Units of ${requestForm.bloodGroup} Blood Request Dispatched!`);
+      setRequestSuccess(`🚨 Urgent ${requestForm.unitsNeeded} ${t('unitsCount')} of ${requestForm.bloodGroup} Blood Request Dispatched!`);
       setTimeout(() => {
         setShowRequestModal(false);
         setRequestSuccess('');
@@ -46,7 +46,7 @@ export default function BloodBankDashboard() {
     }
   };
 
-  if (loading) return <div className="page-loader"><div className="spinner" /><span>Connecting to Live Blood Stock Radar...</span></div>;
+  if (loading) return <div className="page-loader"><div className="spinner" /><span>{t('loading')}</span></div>;
 
   return (
     <div>
@@ -69,7 +69,7 @@ export default function BloodBankDashboard() {
                 <h3 style={{ fontWeight: 800, fontSize: '1.2rem' }}>{bank.name}</h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>📍 {bank.address}, {bank.city} · 📞 {bank.phone}</p>
               </div>
-              <span className="badge badge-completed">LIVE SYNC ACTIVE</span>
+              <span className="badge badge-completed">{t('liveSyncActive')}</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
@@ -86,7 +86,7 @@ export default function BloodBankDashboard() {
                 >
                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>{group}</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 900, color: group.includes('-') || count < 5 ? '#f87171' : 'var(--text-primary)', marginTop: '2px' }}>
-                    {count} <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-muted)' }}>Units</span>
+                    {count} <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-muted)' }}>{t('unitsCount')}</span>
                   </div>
                 </div>
               ))}
@@ -99,7 +99,7 @@ export default function BloodBankDashboard() {
       {showRequestModal && (
         <div className="modal-overlay" onClick={() => setShowRequestModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 800, marginBottom: '16px', color: '#f87171' }}>🚨 Urgent Blood / Plasma Dispatch SOS</h3>
+            <h3 style={{ fontWeight: 800, marginBottom: '16px', color: '#f87171' }}>🚨 {t('requestBloodTitle')}</h3>
             {requestSuccess ? (
               <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--risk-low)', fontWeight: 700 }}>
                 {requestSuccess}
@@ -107,11 +107,11 @@ export default function BloodBankDashboard() {
             ) : (
               <form onSubmit={handleRequestBlood} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="input-group">
-                  <label>Patient Name</label>
+                  <label>{t('patientName')}</label>
                   <input className="input" placeholder="Rahul Kumar" value={requestForm.patientName} onChange={e => setRequestForm({ ...requestForm, patientName: e.target.value })} required />
                 </div>
                 <div className="input-group">
-                  <label>Select Blood Center</label>
+                  <label>{t('selectBloodBank')}</label>
                   <select className="input" value={requestForm.bloodBankId} onChange={e => setRequestForm({ ...requestForm, bloodBankId: e.target.value })}>
                     {bloodBanks.map(b => (
                       <option key={b.id} value={b.id}>{b.name} ({b.city})</option>
@@ -120,7 +120,7 @@ export default function BloodBankDashboard() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="input-group">
-                    <label>Blood Group Needed</label>
+                    <label>{t('bloodGroup')}</label>
                     <select className="input" value={requestForm.bloodGroup} onChange={e => setRequestForm({ ...requestForm, bloodGroup: e.target.value })}>
                       {['O-', 'O+', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'Plasma', 'Platelets'].map(g => (
                         <option key={g} value={g}>{g}</option>
@@ -128,13 +128,13 @@ export default function BloodBankDashboard() {
                     </select>
                   </div>
                   <div className="input-group">
-                    <label>Units Needed</label>
+                    <label>{t('unitsNeeded')}</label>
                     <input className="input" type="number" min="1" max="10" value={requestForm.unitsNeeded} onChange={e => setRequestForm({ ...requestForm, unitsNeeded: e.target.value })} required />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                  <button type="button" className="btn btn-ghost" onClick={() => setShowRequestModal(false)} style={{ flex: 1 }}>Cancel</button>
-                  <button type="submit" className="btn btn-danger" style={{ flex: 1 }}><Send size={16} /> Dispatch Emergency Request</button>
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowRequestModal(false)} style={{ flex: 1 }}>{t('cancel')}</button>
+                  <button type="submit" className="btn btn-danger" style={{ flex: 1 }}><Send size={16} /> {t('dispatchBloodRequest')}</button>
                 </div>
               </form>
             )}

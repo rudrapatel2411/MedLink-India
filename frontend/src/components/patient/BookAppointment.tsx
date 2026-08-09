@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react';
 import { appointmentAPI } from '../../services/api';
 import { Calendar, Clock, Send } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Props {
   onSuccess: () => void;
 }
 
 export default function BookAppointment({ onSuccess }: Props) {
+  const { t } = useLanguage();
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchingDoctors, setFetchingDoctors] = useState(true);
@@ -59,8 +61,8 @@ export default function BookAppointment({ onSuccess }: Props) {
     return (
       <div style={{ textAlign: 'center', padding: '32px 0' }}>
         <div style={{ fontSize: '3rem', marginBottom: '12px' }}>✅</div>
-        <h3 style={{ fontWeight: 700, color: 'var(--risk-low)' }}>Appointment Booked!</h3>
-        <p style={{ color: 'var(--text-muted)', marginTop: '6px' }}>You'll receive your token number shortly.</p>
+        <h3 style={{ fontWeight: 700, color: 'var(--risk-low)' }}>{t('bookingSuccess')}</h3>
+        <p style={{ color: 'var(--text-muted)', marginTop: '6px' }}>{t('tokenNotice')}</p>
       </div>
     );
   }
@@ -69,9 +71,9 @@ export default function BookAppointment({ onSuccess }: Props) {
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Doctor Selection */}
       <div className="input-group">
-        <label>Select Doctor</label>
+        <label>{t('selectDoctor')}</label>
         {fetchingDoctors ? (
-          <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading doctors...</div>
+          <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('loading')}</div>
         ) : (
           <select
             className="input"
@@ -79,7 +81,7 @@ export default function BookAppointment({ onSuccess }: Props) {
             onChange={e => setForm({ ...form, doctorId: e.target.value })}
             required
           >
-            <option value="">Choose a doctor...</option>
+            <option value="">{t('chooseDoctor')}</option>
             {doctors.map(doc => (
               <option key={doc.id} value={doc.id}>
                 Dr. {doc.firstName} {doc.lastName} — {doc.doctorProfile?.specialization || 'General'} (₹{doc.doctorProfile?.consultationFee || 'N/A'})
@@ -119,7 +121,7 @@ export default function BookAppointment({ onSuccess }: Props) {
       {/* Date & Time */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
         <div className="input-group">
-          <label><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Date</label>
+          <label><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />{t('appointmentDate')}</label>
           <input
             type="date"
             className="input"
@@ -129,7 +131,7 @@ export default function BookAppointment({ onSuccess }: Props) {
           />
         </div>
         <div className="input-group">
-          <label><Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />Time</label>
+          <label><Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />{t('appointmentTime')}</label>
           <input
             type="time"
             className="input"
@@ -142,7 +144,7 @@ export default function BookAppointment({ onSuccess }: Props) {
 
       {/* Appointment Type */}
       <div className="input-group">
-        <label>Appointment Type</label>
+        <label>{t('type')}</label>
         <select className="input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
           <option value="OPD">🏥 OPD Visit</option>
           <option value="TELECONSULT">💻 Teleconsultation</option>
@@ -153,7 +155,7 @@ export default function BookAppointment({ onSuccess }: Props) {
 
       {/* Chief Complaint */}
       <div className="input-group">
-        <label>Chief Complaint / Reason</label>
+        <label>{t('chiefComplaintLabel')}</label>
         <textarea
           className="input"
           placeholder="Describe your symptoms or reason for visit..."
@@ -166,7 +168,7 @@ export default function BookAppointment({ onSuccess }: Props) {
       {error && <div style={{ color: 'var(--risk-critical)', fontSize: '0.85rem' }}>{error}</div>}
 
       <button type="submit" className="btn btn-accent btn-lg" disabled={loading} style={{ width: '100%' }}>
-        {loading ? <div className="spinner" /> : <><Send size={16} /> Confirm Booking</>}
+        {loading ? <div className="spinner" /> : <><Send size={16} /> {t('bookAppointmentBtn')}</>}
       </button>
     </form>
   );

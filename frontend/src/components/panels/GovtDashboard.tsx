@@ -38,7 +38,7 @@ export default function GovtDashboard() {
     }
   };
 
-  if (loading) return <div className="page-loader"><div className="spinner" /><span>Loading Disease Outbreak Analytics...</span></div>;
+  if (loading) return <div className="page-loader"><div className="spinner" /><span>{t('loadingGovt')}</span></div>;
 
   return (
     <div>
@@ -54,7 +54,7 @@ export default function GovtDashboard() {
 
       {/* Outbreak Heatmap List */}
       <div className="section-header">
-        <h3 className="section-title">📍 Live Epidemic Outbreak Heatmap (District Level)</h3>
+        <h3 className="section-title">📍 {t('epidemicHeatmap')}</h3>
       </div>
       <div className="dashboard-grid dashboard-grid-2">
         {outbreaks.map(o => (
@@ -65,22 +65,22 @@ export default function GovtDashboard() {
                   <h4 style={{ fontWeight: 800, fontSize: '1.2rem' }}>{o.district}, {o.state}</h4>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--primary-400)', fontWeight: 700, marginTop: '2px' }}>
-                  🦠 {o.diseaseName} OUTBREAK
+                  🦠 {o.diseaseName}
                 </div>
               </div>
               <span className={`badge ${o.riskLevel === 'HIGH' || o.riskLevel === 'SEVERE' ? 'badge-risk-critical' : 'badge-risk-medium'}`}>
-                {o.riskLevel} RISK
+                {t(o.riskLevel) || o.riskLevel} {t('riskLevel')}
               </span>
             </div>
 
             <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Active Reported Cases</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('activeReportedCases')}</div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-primary)' }}>{o.activeCases}</div>
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                District Needs Index:<br />
-                <span style={{ color: 'var(--accent-400)', fontWeight: 700 }}>Medical Staff & Vaccines Allocated</span>
+                {t('districtNeedsIndex')}:<br />
+                <span style={{ color: 'var(--accent-400)', fontWeight: 700 }}>{t('medicalStaffAllocated')}</span>
               </div>
             </div>
           </div>
@@ -91,21 +91,21 @@ export default function GovtDashboard() {
       {showReportModal && (
         <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>Report District Outbreak Data</h3>
+            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>{t('reportOutbreakTitle')}</h3>
             <form onSubmit={handleReportOutbreak} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div className="input-group">
-                  <label>District</label>
+                  <label>{t('district')}</label>
                   <input className="input" value={outbreakForm.district} onChange={e => setOutbreakForm({ ...outbreakForm, district: e.target.value })} required />
                 </div>
                 <div className="input-group">
-                  <label>State</label>
+                  <label>{t('state')}</label>
                   <input className="input" value={outbreakForm.state} onChange={e => setOutbreakForm({ ...outbreakForm, state: e.target.value })} required />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div className="input-group">
-                  <label>Disease Name</label>
+                  <label>{t('diseaseNameLabel')}</label>
                   <select className="input" value={outbreakForm.diseaseName} onChange={e => setOutbreakForm({ ...outbreakForm, diseaseName: e.target.value })}>
                     <option value="DENGUE">Dengue</option>
                     <option value="MALARIA">Malaria</option>
@@ -115,12 +115,12 @@ export default function GovtDashboard() {
                   </select>
                 </div>
                 <div className="input-group">
-                  <label>Active Cases</label>
+                  <label>{t('activeReportedCases')}</label>
                   <input className="input" type="number" value={outbreakForm.activeCases} onChange={e => setOutbreakForm({ ...outbreakForm, activeCases: e.target.value })} required />
                 </div>
               </div>
               <div className="input-group">
-                <label>Risk Level</label>
+                <label>{t('riskLevelLabel')}</label>
                 <select className="input" value={outbreakForm.riskLevel} onChange={e => setOutbreakForm({ ...outbreakForm, riskLevel: e.target.value })}>
                   <option value="MODERATE">🟡 MODERATE</option>
                   <option value="HIGH">🟠 HIGH</option>
@@ -128,8 +128,8 @@ export default function GovtDashboard() {
                 </select>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setShowReportModal(false)} style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-danger" style={{ flex: 1 }}>Submit Outbreak Report</button>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowReportModal(false)} style={{ flex: 1 }}>{t('cancel')}</button>
+                <button type="submit" className="btn btn-danger" style={{ flex: 1 }}>{t('submit')}</button>
               </div>
             </form>
           </div>

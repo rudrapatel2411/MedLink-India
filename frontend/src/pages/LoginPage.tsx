@@ -2,10 +2,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import type { Language } from '../utils/translations';
+import { LogIn, Eye, EyeOff, Globe } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +24,7 @@ export default function LoginPage() {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || t('loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -36,32 +39,56 @@ export default function LoginPage() {
       await login(demoEmail, '12345');
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Quick login failed.');
+      setError(err.response?.data?.message || t('loginFailed'));
     } finally {
       setLoading(false);
     }
   };
 
   const demoAccounts = [
-    { label: '🧑 Patient / Citizen', email: 'patient@gmail.com' },
-    { label: '👨‍⚕️ Doctor / Practitioner', email: 'doctor@gmail.com' },
-    { label: '🏥 Hospital Administrator', email: 'hospital@gmail.com' },
-    { label: '🧪 Lab Technician', email: 'lab@gmail.com' },
-    { label: '💊 Pharmacist', email: 'pharmacy@gmail.com' },
-    { label: '🚑 Ambulance Driver', email: 'ambulance@gmail.com' },
-    { label: '🩸 Blood Bank Manager', email: 'bloodbank@gmail.com' },
-    { label: '📜 Insurance TPA', email: 'insurance@gmail.com' },
-    { label: '🏛️ Government Health', email: 'govt@gmail.com' },
-    { label: '🛡️ Super Admin Console', email: 'admin@medlink.in' },
+    { label: `🧑 ${t('role_PATIENT')}`, email: 'patient@gmail.com' },
+    { label: `👨‍⚕️ ${t('role_DOCTOR')}`, email: 'doctor@gmail.com' },
+    { label: `🏥 ${t('role_HOSPITAL_ADMIN')}`, email: 'hospital@gmail.com' },
+    { label: `🧪 ${t('role_LAB_TECHNICIAN')}`, email: 'lab@gmail.com' },
+    { label: `💊 ${t('role_PHARMACIST')}`, email: 'pharmacy@gmail.com' },
+    { label: `🚑 ${t('role_AMBULANCE_DRIVER')}`, email: 'ambulance@gmail.com' },
+    { label: `🩸 ${t('role_BLOOD_BANK_MANAGER')}`, email: 'bloodbank@gmail.com' },
+    { label: `📜 ${t('role_INSURANCE_TPA')}`, email: 'insurance@gmail.com' },
+    { label: `🏛️ ${t('role_GOVT_OFFICIAL')}`, email: 'govt@gmail.com' },
+    { label: `🛡️ ${t('role_SUPER_ADMIN')}`, email: 'admin@medlink.in' },
   ];
 
   return (
     <div className="auth-page">
-      <div className="auth-card glass-card-static animate-in" style={{ maxWidth: '440px' }}>
+      <div className="auth-card glass-card-static animate-in" style={{ maxWidth: '440px', position: 'relative' }}>
+        {/* Top Language Switcher */}
+        <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Globe size={14} style={{ color: 'var(--primary-400)' }} />
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Language)}
+            style={{
+              background: 'var(--bg-input)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-glass)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '2px 6px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            <option value="en">🌐 English</option>
+            <option value="hi">🇮🇳 हिंदी</option>
+            <option value="gu">🇮🇳 ગુજરાતી</option>
+          </select>
+        </div>
+
         <div className="auth-logo">
           <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>🏥</div>
-          <h1>MedLink India</h1>
-          <p>Healthcare Operating System</p>
+          <h1>{t('brandName')}</h1>
+          <p>{t('tagline')}</p>
         </div>
 
         {error && (
@@ -72,11 +99,11 @@ export default function LoginPage() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>Email Address</label>
+            <label>{t('emailAddress')}</label>
             <input
               type="email"
               className="input"
-              placeholder="Enter your email"
+              placeholder={t('enterEmail')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -84,12 +111,12 @@ export default function LoginPage() {
           </div>
 
           <div className="input-group">
-            <label>Password</label>
+            <label>{t('password')}</label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
                 className="input"
-                placeholder="Enter your password"
+                placeholder={t('enterPassword')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -109,25 +136,25 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: '8px' }}>
-            {loading ? <div className="spinner" /> : <><LogIn size={18} /> Sign In</>}
+            {loading ? <div className="spinner" /> : <><LogIn size={18} /> {t('signIn')}</>}
           </button>
         </form>
 
         <div className="auth-footer">
-          Don't have an account? <Link to="/register">Create Account</Link>
+          {t('dontHaveAccount')} <Link to="/register">{t('register')}</Link>
         </div>
 
         {/* Quick Demo Login Grid */}
         <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)' }}>
           <p style={{ fontSize: '0.75rem', color: 'var(--primary-400)', textAlign: 'center', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 800 }}>
-            ⚡ Direct 1-Click Panel Login
+            {t('directPanelLogin')}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {demoAccounts.map((acc) => (
               <button
                 key={acc.email}
                 className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start', fontSize: '0.75rem', padding: '6px 10px' }}
+                style={{ width: '100%', justifyContent: 'flex-start', fontSize: '0.75rem', padding: '6px 10px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
                 onClick={() => quickDemoLogin(acc.email)}
               >
                 {acc.label}

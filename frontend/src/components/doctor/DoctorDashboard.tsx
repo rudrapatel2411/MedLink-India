@@ -6,7 +6,7 @@ import {
   Users, Calendar, Stethoscope, Activity,
   CheckCircle2, Play, X, Pill
 } from 'lucide-react';
-import CreatePrescription from './CreatePrescription.tsx';
+import CreatePrescription from './CreatePrescription';
 
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -73,7 +73,7 @@ export default function DoctorDashboard() {
   };
 
   if (loading) {
-    return <div className="page-loader"><div className="spinner" /><span>Loading clinic data...</span></div>;
+    return <div className="page-loader"><div className="spinner" /><span>{t('loadingClinic')}</span></div>;
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -81,10 +81,12 @@ export default function DoctorDashboard() {
   const completedToday = todayAppts.filter(a => a.status === 'COMPLETED').length;
   const inProgress = opdQueue.find(a => a.status === 'IN_PROGRESS');
 
+  const greeting = new Date().getHours() < 12 ? t('goodMorning') : new Date().getHours() < 17 ? t('goodAfternoon') : t('goodEvening');
+
   const tabs = [
-    { key: 'opd', label: 'OPD Queue', icon: Users },
-    { key: 'appointments', label: 'All Appointments', icon: Calendar },
-    { key: 'prescriptions', label: 'Prescriptions', icon: Pill },
+    { key: 'opd', label: t('opdQueue'), icon: Users },
+    { key: 'appointments', label: t('allAppointments'), icon: Calendar },
+    { key: 'prescriptions', label: t('prescriptions'), icon: Pill },
   ];
 
   return (
@@ -92,7 +94,7 @@ export default function DoctorDashboard() {
       {/* Welcome */}
       <div style={{ marginBottom: '28px' }} className="animate-in">
         <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>
-          Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 17 ? 'Afternoon' : 'Evening'}, <span style={{ color: 'var(--primary-400)' }}>Dr. {user?.lastName}</span> 👨‍⚕️
+          {greeting}, <span style={{ color: 'var(--primary-400)' }}>Dr. {user?.lastName}</span> 👨‍⚕️
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>
           {user?.doctorProfile?.specialization || 'Doctor'} · {user?.doctorProfile?.hospitalAffiliation || ''}
@@ -110,7 +112,7 @@ export default function DoctorDashboard() {
         </div>
         <div className="glass-card stat-card stat-emerald">
           <div className="stat-card-header">
-            <span className="stat-card-label">{t('completed')}</span>
+            <span className="stat-card-label">{t('completedVisits')}</span>
             <div className="stat-card-icon"><CheckCircle2 size={18} /></div>
           </div>
           <div className="stat-card-value">{completedToday}</div>
@@ -168,8 +170,8 @@ export default function DoctorDashboard() {
             {inProgress && (
               <div className="glass-card-static" style={{ padding: '20px', marginBottom: '20px', borderLeft: '4px solid var(--primary-500)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <span className="badge badge-in-progress">🔵 IN PROGRESS</span>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Token #{inProgress.tokenNumber}</span>
+                  <span className="badge badge-in-progress">🔵 {t('inProgressConsult')}</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t('token')} #{inProgress.tokenNumber}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
@@ -177,7 +179,7 @@ export default function DoctorDashboard() {
                       {inProgress.patient?.firstName} {inProgress.patient?.lastName}
                     </h3>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {inProgress.chiefComplaint || 'No complaint listed'}
+                      {inProgress.chiefComplaint || '—'}
                     </p>
                     {inProgress.patient?.patientProfile && (
                       <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -189,10 +191,10 @@ export default function DoctorDashboard() {
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-primary btn-sm" onClick={() => openPrescription(inProgress)}>
-                      <Pill size={14} /> Write Rx
+                      <Pill size={14} /> {t('writeRx')}
                     </button>
                     <button className="btn btn-accent btn-sm" onClick={() => handleStatusUpdate(inProgress.id, 'COMPLETED')}>
-                      <CheckCircle2 size={14} /> Complete
+                      <CheckCircle2 size={14} /> {t('completeConsultation')}
                     </button>
                   </div>
                 </div>
@@ -200,11 +202,11 @@ export default function DoctorDashboard() {
             )}
 
             {/* Queue List */}
-            <h3 style={{ fontWeight: 700, marginBottom: '12px' }}>📋 Today's OPD Queue</h3>
+            <h3 style={{ fontWeight: 700, marginBottom: '12px' }}>📋 {t('todaysQueue')}</h3>
             {opdQueue.filter(a => a.status !== 'IN_PROGRESS').length === 0 && !inProgress ? (
               <div className="glass-card-static empty-state">
                 <div className="empty-state-icon">👨‍⚕️</div>
-                <p className="empty-state-title">No patients in queue today</p>
+                <p className="empty-state-title">{t('noPatientsInQueue')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -221,20 +223,20 @@ export default function DoctorDashboard() {
                       <div>
                         <div style={{ fontWeight: 600 }}>{appt.patient?.firstName} {appt.patient?.lastName}</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          {appt.scheduledTime} · {appt.chiefComplaint?.substring(0, 50) || 'No complaint'}
+                          {appt.scheduledTime} · {appt.chiefComplaint?.substring(0, 50) || '—'}
                         </div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <span className={`badge ${getStatusBadge(appt.status)}`}>{appt.status.replace('_', ' ')}</span>
+                      <span className={`badge ${getStatusBadge(appt.status)}`}>{t(appt.status) || appt.status.replace('_', ' ')}</span>
                       {appt.status === 'SCHEDULED' && (
                         <button className="btn btn-ghost btn-sm" onClick={() => handleStatusUpdate(appt.id, 'IN_QUEUE')}>
-                          Queue
+                          {t('IN_QUEUE')}
                         </button>
                       )}
                       {appt.status === 'IN_QUEUE' && !inProgress && (
                         <button className="btn btn-primary btn-sm" onClick={() => handleStatusUpdate(appt.id, 'IN_PROGRESS')}>
-                          <Play size={12} /> Start
+                          <Play size={12} /> {t('startConsultation')}
                         </button>
                       )}
                     </div>
@@ -247,17 +249,17 @@ export default function DoctorDashboard() {
 
         {activeTab === 'appointments' && (
           <div>
-            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>All Appointments</h3>
+            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>{t('allAppointments')}</h3>
             <div className="glass-card-static" style={{ overflow: 'auto' }}>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Patient</th>
-                    <th>Date & Time</th>
-                    <th>Token</th>
-                    <th>Chief Complaint</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{t('patientName')}</th>
+                    <th>{t('dateTime')}</th>
+                    <th>{t('token')}</th>
+                    <th>{t('complaint')}</th>
+                    <th>{t('status')}</th>
+                    <th>{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -271,11 +273,11 @@ export default function DoctorDashboard() {
                       <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {appt.chiefComplaint || '—'}
                       </td>
-                      <td><span className={`badge ${getStatusBadge(appt.status)}`}>{appt.status.replace('_', ' ')}</span></td>
+                      <td><span className={`badge ${getStatusBadge(appt.status)}`}>{t(appt.status) || appt.status.replace('_', ' ')}</span></td>
                       <td>
                         {appt.status === 'IN_PROGRESS' && (
                           <button className="btn btn-primary btn-sm" onClick={() => openPrescription(appt)}>
-                            <Pill size={12} /> Rx
+                            <Pill size={12} /> {t('writeRx')}
                           </button>
                         )}
                       </td>
@@ -286,7 +288,7 @@ export default function DoctorDashboard() {
               {appointments.length === 0 && (
                 <div className="empty-state">
                   <div className="empty-state-icon">📅</div>
-                  <p className="empty-state-title">No appointments yet</p>
+                  <p className="empty-state-title">{t('noPatientsInQueue')}</p>
                 </div>
               )}
             </div>
@@ -295,11 +297,11 @@ export default function DoctorDashboard() {
 
         {activeTab === 'prescriptions' && (
           <div>
-            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>Prescriptions Issued</h3>
+            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>{t('allPrescriptions')}</h3>
             {prescriptions.length === 0 ? (
               <div className="glass-card-static empty-state">
                 <div className="empty-state-icon">💊</div>
-                <p className="empty-state-title">No prescriptions issued yet</p>
+                <p className="empty-state-title">{t('noActiveRx')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -311,10 +313,10 @@ export default function DoctorDashboard() {
                           {rx.patient?.firstName} {rx.patient?.lastName}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          {rx.diagnosis || 'No diagnosis'} · {new Date(rx.createdAt).toLocaleDateString('en-IN')}
+                          {rx.diagnosis || '—'} · {new Date(rx.createdAt).toLocaleDateString('en-IN')}
                         </div>
                       </div>
-                      <span className={`badge ${rx.status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}`}>{rx.status}</span>
+                      <span className={`badge ${rx.status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}`}>{t(rx.status) || rx.status}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       {rx.medicines?.map((m: any) => (
@@ -336,7 +338,7 @@ export default function DoctorDashboard() {
         <div className="modal-overlay" onClick={() => setShowRxModal(false)}>
           <div className="modal" style={{ maxWidth: '700px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">💊 Write Prescription</h2>
+              <h2 className="modal-title">💊 {t('writeRx')}</h2>
               <button className="modal-close" onClick={() => setShowRxModal(false)}><X size={18} /></button>
             </div>
             <CreatePrescription

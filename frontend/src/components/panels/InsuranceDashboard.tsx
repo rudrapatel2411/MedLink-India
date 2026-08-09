@@ -44,7 +44,7 @@ export default function InsuranceDashboard() {
     }
   };
 
-  if (loading) return <div className="page-loader"><div className="spinner" /><span>Loading Cashless Pre-Auth Claim Engine...</span></div>;
+  if (loading) return <div className="page-loader"><div className="spinner" /><span>{t('loadingInsurance')}</span></div>;
 
   return (
     <div>
@@ -60,7 +60,7 @@ export default function InsuranceDashboard() {
 
       {/* Claims List */}
       <div className="section-header">
-        <h3 className="section-title">📄 Cashless Pre-Auth Claim Audit Logs</h3>
+        <h3 className="section-title">📄 {t('claimAuditLogs')}</h3>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {claims.map(claim => (
@@ -69,25 +69,25 @@ export default function InsuranceDashboard() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <h4 style={{ fontWeight: 800, fontSize: '1.1rem' }}>{claim.claimNumber}</h4>
-                  <span className="badge badge-completed">{claim.status}</span>
+                  <span className="badge badge-completed">{t(claim.status) || claim.status}</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Patient: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{claim.patientName}</span> · Hospital: {claim.hospitalName} · Policy: <code style={{ color: 'var(--primary-400)' }}>{claim.policyNumber}</code>
+                  {t('patientName')}: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{claim.patientName}</span> · {t('hospital')}: {claim.hospitalName} · {t('policyNoLabel')}: <code style={{ color: 'var(--primary-400)' }}>{claim.policyNumber}</code>
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  Diagnosis Code: {claim.diagnosisCode}
+                  {t('diagnosisCodeLabel')}: {claim.diagnosisCode}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--accent-400)' }}>₹{claim.claimAmount}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cashless Pre-Approved</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('cashlessApproved')}</div>
               </div>
             </div>
 
             {/* Audit Logs */}
             <div style={{ background: 'var(--bg-input)', padding: '12px', borderRadius: 'var(--radius-md)' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Automated Fraud Prevention Audit Checks
+                {t('fraudAuditTitle')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {claim.auditLogs?.map((log: string, i: number) => (
@@ -103,33 +103,33 @@ export default function InsuranceDashboard() {
       {showClaimModal && (
         <div className="modal-overlay" onClick={() => setShowClaimModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>Submit Cashless Pre-Auth Claim</h3>
+            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>{t('submitClaimTitle')}</h3>
             <form onSubmit={handleSubmitClaim} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="input-group">
-                <label>Patient Name</label>
+                <label>{t('patientName')}</label>
                 <input className="input" value={claimForm.patientName} onChange={e => setClaimForm({ ...claimForm, patientName: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label>Hospital Name</label>
+                <label>{t('hospital')}</label>
                 <input className="input" value={claimForm.hospitalName} onChange={e => setClaimForm({ ...claimForm, hospitalName: e.target.value })} required />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div className="input-group">
-                  <label>Policy Number</label>
+                  <label>{t('policyNoLabel')}</label>
                   <input className="input" value={claimForm.policyNumber} onChange={e => setClaimForm({ ...claimForm, policyNumber: e.target.value })} required />
                 </div>
                 <div className="input-group">
-                  <label>Claim Amount (₹)</label>
+                  <label>{t('claimAmountLabel')}</label>
                   <input className="input" type="number" value={claimForm.claimAmount} onChange={e => setClaimForm({ ...claimForm, claimAmount: e.target.value })} required />
                 </div>
               </div>
               <div className="input-group">
-                <label>Diagnosis Code</label>
+                <label>{t('diagnosisCodeLabel')}</label>
                 <input className="input" value={claimForm.diagnosisCode} onChange={e => setClaimForm({ ...claimForm, diagnosisCode: e.target.value })} required />
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setShowClaimModal(false)} style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}><Send size={16} /> Pre-Approve Claim</button>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowClaimModal(false)} style={{ flex: 1 }}>{t('cancel')}</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}><Send size={16} /> {t('submit')}</button>
               </div>
             </form>
           </div>

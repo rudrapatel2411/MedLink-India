@@ -55,7 +55,7 @@ export default function PharmacyDashboard() {
     }
   };
 
-  if (loading) return <div className="page-loader"><div className="spinner" /><span>Loading E-Pharmacy Inventory & Orders...</span></div>;
+  if (loading) return <div className="page-loader"><div className="spinner" /><span>{t('loadingPharmacy')}</span></div>;
 
   return (
     <div>
@@ -71,7 +71,7 @@ export default function PharmacyDashboard() {
 
       {/* Orders Section */}
       <div className="section-header">
-        <h3 className="section-title">📦 Digitized Prescription Orders</h3>
+        <h3 className="section-title">📦 {t('prescriptionOrders')}</h3>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
         {orders.map(ord => (
@@ -80,7 +80,7 @@ export default function PharmacyDashboard() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <h4 style={{ fontWeight: 800 }}>{ord.patientName}</h4>
-                  <span className="badge badge-completed">{ord.status}</span>
+                  <span className="badge badge-completed">{t(ord.status) || ord.status}</span>
                 </div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>📍 {ord.deliveryAddress}</p>
                 <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
@@ -93,7 +93,7 @@ export default function PharmacyDashboard() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-400)' }}>₹{ord.totalAmount}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Verified & Dispatched</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('verifiedDispatched')}</div>
               </div>
             </div>
           </div>
@@ -102,19 +102,19 @@ export default function PharmacyDashboard() {
 
       {/* Inventory & Expiry Tracker */}
       <div className="section-header">
-        <h3 className="section-title">📊 Medicine Stock & 60-Day Expiry Tracker</h3>
+        <h3 className="section-title">📊 {t('coldChainInventory')}</h3>
       </div>
       <div className="glass-card-static" style={{ overflow: 'auto' }}>
         <table className="data-table">
           <thead>
             <tr>
-              <th>Medicine Name</th>
+              <th>{t('medicineLabel')}</th>
               <th>Batch No</th>
-              <th>Category</th>
+              <th>{t('categoryLabel')}</th>
               <th>Stock Qty</th>
               <th>Unit Price</th>
               <th>Expiry Date</th>
-              <th>Status Alert</th>
+              <th>{t('status')}</th>
             </tr>
           </thead>
           <tbody>
@@ -125,14 +125,14 @@ export default function PharmacyDashboard() {
                   <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.medicineName}</td>
                   <td><code style={{ fontSize: '0.8rem', color: 'var(--text-accent)' }}>{item.batchNo}</code></td>
                   <td><span className="badge badge-scheduled">{item.category}</span></td>
-                  <td style={{ fontWeight: 700 }}>{item.quantity} units</td>
+                  <td style={{ fontWeight: 700 }}>{item.quantity} {t('unitsCount')}</td>
                   <td>₹{item.unitPrice}</td>
                   <td>{item.expiryDate}</td>
                   <td>
                     {daysLeft < 60 ? (
-                      <span className="badge badge-risk-critical">⚠️ EXPIRING IN {daysLeft} DAYS</span>
+                      <span className="badge badge-risk-critical">⚠️ {t('expiringAlert')}</span>
                     ) : (
-                      <span className="badge badge-completed">VALID</span>
+                      <span className="badge badge-completed">{t('inStock')}</span>
                     )}
                   </td>
                 </tr>
@@ -146,14 +146,14 @@ export default function PharmacyDashboard() {
       {showOrderModal && (
         <div className="modal-overlay" onClick={() => setShowOrderModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>Fulfill Prescription Order</h3>
+            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>{t('fulfillOrderTitle')}</h3>
             <form onSubmit={handleCreateOrder} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="input-group">
-                <label>Patient Name</label>
+                <label>{t('patientName')}</label>
                 <input className="input" value={orderForm.patientName} onChange={e => setOrderForm({ ...orderForm, patientName: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label>Select Medicine</label>
+                <label>{t('select')} {t('medicineLabel')}</label>
                 <select className="input" value={orderForm.medicine} onChange={e => setOrderForm({ ...orderForm, medicine: e.target.value })}>
                   {inventory.map(i => (
                     <option key={i.id} value={i.medicineName}>{i.medicineName} (Stock: {i.quantity})</option>
@@ -161,16 +161,16 @@ export default function PharmacyDashboard() {
                 </select>
               </div>
               <div className="input-group">
-                <label>Quantity</label>
+                <label>{t('quantityLabel')}</label>
                 <input className="input" type="number" min="1" max="50" value={orderForm.qty} onChange={e => setOrderForm({ ...orderForm, qty: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label>Delivery Address</label>
+                <label>{t('deliveryAddressLabel')}</label>
                 <textarea className="input" value={orderForm.address} onChange={e => setOrderForm({ ...orderForm, address: e.target.value })} rows={2} required />
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setShowOrderModal(false)} style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-accent" style={{ flex: 1 }}><ShoppingBag size={16} /> Confirm & Dispatch</button>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowOrderModal(false)} style={{ flex: 1 }}>{t('cancel')}</button>
+                <button type="submit" className="btn btn-accent" style={{ flex: 1 }}><ShoppingBag size={16} /> {t('submit')}</button>
               </div>
             </form>
           </div>

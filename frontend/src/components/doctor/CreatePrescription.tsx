@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { prescriptionAPI } from '../../services/api';
 import { Plus, Trash2, Send, Pill } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Medicine {
   medicineName: string;
@@ -32,6 +33,7 @@ const COMMON_MEDICINES = [
 ];
 
 export default function CreatePrescription({ patient, appointmentId, onSuccess }: Props) {
+  const { t } = useLanguage();
   const [diagnosis, setDiagnosis] = useState('');
   const [notes, setNotes] = useState('');
   const [medicines, setMedicines] = useState<Medicine[]>([
@@ -123,14 +125,14 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
 
       {/* Diagnosis */}
       <div className="input-group">
-        <label>Diagnosis</label>
+        <label>{t('diagnosisLabel')}</label>
         <input className="input" placeholder="e.g., Viral Fever with Upper Respiratory Infection" value={diagnosis} onChange={e => setDiagnosis(e.target.value)} />
       </div>
 
       {/* Quick Add Medicines */}
       <div>
         <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
-          Quick Add Common Medicines
+          {t('quickMedicines')}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {COMMON_MEDICINES.map(med => (
@@ -151,10 +153,10 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-            Medicines ({medicines.length})
+            {t('medicineList')} ({medicines.length})
           </label>
           <button type="button" className="btn btn-ghost btn-sm" onClick={addMedicine}>
-            <Plus size={12} /> Add
+            <Plus size={12} /> {t('addMedicine')}
           </button>
         </div>
 
@@ -162,7 +164,7 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
           {medicines.map((med, i) => (
             <div key={i} className="glass-card-static" style={{ padding: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>Medicine #{i + 1}</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>{t('medicineLabel')} #{i + 1}</span>
                 {medicines.length > 1 && (
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => removeMedicine(i)} style={{ color: '#f87171', padding: '4px' }}>
                     <Trash2 size={14} />
@@ -170,9 +172,9 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
                 )}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px' }}>
-                <input className="input" placeholder="Medicine Name" value={med.medicineName}
+                <input className="input" placeholder={t('medicineLabel')} value={med.medicineName}
                   onChange={e => updateMedicine(i, 'medicineName', e.target.value)} style={{ fontSize: '0.85rem', padding: '8px 12px' }} />
-                <input className="input" placeholder="Dosage" value={med.dosage}
+                <input className="input" placeholder={t('dosage')} value={med.dosage}
                   onChange={e => updateMedicine(i, 'dosage', e.target.value)} style={{ fontSize: '0.85rem', padding: '8px 12px' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px' }}>
@@ -185,9 +187,9 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
                   <option value="1-1-1-1">Four times</option>
                   <option value="SOS">As needed (SOS)</option>
                 </select>
-                <input className="input" placeholder="Duration" value={med.duration}
+                <input className="input" placeholder={t('duration')} value={med.duration}
                   onChange={e => updateMedicine(i, 'duration', e.target.value)} style={{ fontSize: '0.85rem', padding: '8px 12px' }} />
-                <input className="input" placeholder="Instructions" value={med.instructions}
+                <input className="input" placeholder={t('instructions')} value={med.instructions}
                   onChange={e => updateMedicine(i, 'instructions', e.target.value)} style={{ fontSize: '0.85rem', padding: '8px 12px' }} />
               </div>
             </div>
@@ -197,14 +199,14 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
 
       {/* Doctor Notes */}
       <div className="input-group">
-        <label>Doctor Notes / Advice</label>
+        <label>{t('clinicalNotes')}</label>
         <textarea className="input" placeholder="Additional instructions, dietary advice, follow-up plans..." value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
       </div>
 
       {error && <div style={{ color: 'var(--risk-critical)', fontSize: '0.85rem' }}>{error}</div>}
 
       <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%' }}>
-        {loading ? <div className="spinner" /> : <><Send size={16} /> Issue Prescription</>}
+        {loading ? <div className="spinner" /> : <><Send size={16} /> {t('saveRx')}</>}
       </button>
     </form>
   );

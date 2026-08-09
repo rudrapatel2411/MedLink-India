@@ -35,7 +35,7 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
     return (
       <div className="page-loader">
         <div className="spinner" />
-        <span>Loading {isSuperAdmin ? 'Super Admin Security Control Vault...' : 'Platform Operations Console...'}</span>
+        <span>{t('loadingAdmin')}</span>
       </div>
     );
   }
@@ -47,9 +47,9 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
         <div style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '1.25rem' }}>⚙️</span>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Platform Operations & SaaS Monetization</h1>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>{t('role_PLATFORM_ADMIN')}</h1>
           </div>
-          <p style={{ color: 'var(--text-muted)' }}>Manage SaaS Subscriptions, Hospital Onboarding, Commissions & User Growth</p>
+          <p style={{ color: 'var(--text-muted)' }}>{t('adminSubtitle')}</p>
         </div>
 
         {/* Revenue & Operations KPIs */}
@@ -72,35 +72,35 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
 
           <div className="glass-card stat-card stat-violet">
             <div className="stat-card-header">
-              <span className="stat-card-label">Empaneled Hospitals</span>
+              <span className="stat-card-label">{t('empaneledHospitals')}</span>
               <div className="stat-card-icon"><Building2 size={18} /></div>
             </div>
-            <div className="stat-card-value">{stats?.totalHospitals || 4} Super-Specialties</div>
+            <div className="stat-card-value">{stats?.totalHospitals || 4}</div>
           </div>
 
           <div className="glass-card stat-card stat-amber">
             <div className="stat-card-header">
-              <span className="stat-card-label">Active Platform Users</span>
+              <span className="stat-card-label">{t('activeUsers')}</span>
               <div className="stat-card-icon"><Users size={18} /></div>
             </div>
-            <div className="stat-card-value">{stats?.totalUsers || 3420} Registered</div>
+            <div className="stat-card-value">{stats?.totalUsers || 3420}</div>
           </div>
         </div>
 
         {/* Empaneled Network Entities Table */}
         <div className="section-header" style={{ marginBottom: '16px' }}>
-          <h3 className="section-title">🏥 Empaneled Hospital & Enterprise Network</h3>
+          <h3 className="section-title">🏥 {t('empaneledNetwork')}</h3>
         </div>
 
         <div className="glass-card-static" style={{ padding: '20px' }}>
           <table className="data-table" style={{ width: '100%', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                <th style={{ padding: '10px' }}>Entity Name</th>
-                <th style={{ padding: '10px' }}>Category</th>
+                <th style={{ padding: '10px' }}>{t('entityName')}</th>
+                <th style={{ padding: '10px' }}>{t('categoryLabel')}</th>
                 <th style={{ padding: '10px' }}>Subscription Tier</th>
                 <th style={{ padding: '10px' }}>Monthly Billing</th>
-                <th style={{ padding: '10px' }}>Status</th>
+                <th style={{ padding: '10px' }}>{t('status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +117,7 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
                   <td style={{ padding: '12px 10px', color: 'var(--text-muted)' }}>{item.type}</td>
                   <td style={{ padding: '12px 10px' }}><span className="badge badge-info">{item.tier}</span></td>
                   <td style={{ padding: '12px 10px', fontWeight: 600, color: 'var(--primary-300)' }}>{item.bill}</td>
-                  <td style={{ padding: '12px 10px' }}><span className="badge badge-success">ACTIVE</span></td>
+                  <td style={{ padding: '12px 10px' }}><span className="badge badge-success">{t(item.status) || item.status}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -133,9 +133,9 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <span style={{ fontSize: '1.25rem' }}>🛡️</span>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Super Admin System Governance & Security Vault</h1>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>{t('adminTitle')}</h1>
         </div>
-        <p style={{ color: 'var(--text-muted)' }}>Master Cryptographic Controls, ABDM Sandbox Governance & Infrastructure Health</p>
+        <p style={{ color: 'var(--text-muted)' }}>{t('adminSubtitle')}</p>
       </div>
 
       {/* Security KPIs */}
@@ -145,7 +145,7 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
             <span className="stat-card-label">{t('abdmNodes')}</span>
             <div className="stat-card-icon"><Shield size={18} /></div>
           </div>
-          <div className="stat-card-value">{stats?.activeAbdmNodes || 48} Live Nodes</div>
+          <div className="stat-card-value">{stats?.activeAbdmNodes || 48}</div>
         </div>
 
         <div className="glass-card stat-card stat-emerald">
@@ -158,7 +158,7 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
 
         <div className="glass-card stat-card stat-cyan">
           <div className="stat-card-header">
-            <span className="stat-card-label">System SLA Status</span>
+            <span className="stat-card-label">{t('nodeHealth')}</span>
             <div className="stat-card-icon"><Activity size={18} /></div>
           </div>
           <div className="stat-card-value">100% Operational</div>
@@ -169,7 +169,7 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
             <span className="stat-card-label">Master Replica Sync</span>
             <div className="stat-card-icon"><Server size={18} /></div>
           </div>
-          <div className="stat-card-value">Synced (0ms lag)</div>
+          <div className="stat-card-value">Synced</div>
         </div>
       </div>
 
@@ -177,7 +177,7 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
       <div className="glass-card-static" style={{ padding: '20px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Key size={18} style={{ color: 'var(--primary-400)' }} /> Master Cryptographic Key Management
+            <Key size={18} style={{ color: 'var(--primary-400)' }} /> {t('keyRotation')}
           </div>
           <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
             Rotate system HMAC-SHA256 signing keys and re-issue ABDM Sandbox Certificates.
@@ -189,13 +189,13 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
           disabled={keyRotated}
         >
           {keyRotated ? <CheckCircle2 size={16} /> : <RefreshCw size={16} />}
-          {keyRotated ? 'Keys Rotated & Secured' : 'Trigger Master Key Rotation'}
+          {keyRotated ? 'Keys Rotated & Secured' : t('rotateMasterKey')}
         </button>
       </div>
 
       {/* System Audit Log Vault */}
       <div className="section-header" style={{ marginBottom: '16px' }}>
-        <h3 className="section-title">🔒 System Cryptographic Audit Log Vault</h3>
+        <h3 className="section-title">🔒 {t('cryptoAudit')}</h3>
       </div>
       <div className="glass-card-static" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -204,7 +204,7 @@ export default function AdminDashboard({ role = 'SUPER_ADMIN' }: AdminDashboardP
             '✅ [ABDM GOVERNANCE] M1 (ABHA Creation), M2 (Health Record Push), M3 (Consent Manager) Sandbox Active',
             '✅ [RBAC PROTECTION] Role-Based Access Control enforced for PLATFORM_ADMIN vs SUPER_ADMIN permissions',
             '✅ [KAFKA EVENT RADAR] Emergency SOS Event Queue Latency: 3.8ms (<10ms SLA target)',
-            '✅ [DATABASE REPLICA] Primary SQLite Database synced with Secondary Cold Backup',
+            '✅ [DATABASE REPLICA] Primary Database synced with Secondary Cold Backup',
             ...(keyRotated ? ['🔑 [KEY ROTATION] Cryptographic Signing Keys rotated successfully at ' + new Date().toLocaleTimeString()] : []),
           ].map((log, i) => (
             <div key={i} style={{ background: 'var(--bg-input)', padding: '12px 16px', borderRadius: 'var(--radius-md)', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>

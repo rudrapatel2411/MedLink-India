@@ -62,7 +62,7 @@ export default function LabDashboard() {
     }
   };
 
-  if (loading) return <div className="page-loader"><div className="spinner" /><span>Loading Diagnostic Lab Reports...</span></div>;
+  if (loading) return <div className="page-loader"><div className="spinner" /><span>{t('loadingLab')}</span></div>;
 
   return (
     <div>
@@ -78,7 +78,7 @@ export default function LabDashboard() {
 
       {/* Reports List */}
       <div className="section-header">
-        <h3 className="section-title">📄 Recent Specimen Reports</h3>
+        <h3 className="section-title">📄 {t('recentReports')}</h3>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {reports.map(rep => (
@@ -88,13 +88,13 @@ export default function LabDashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h4 style={{ fontWeight: 800, fontSize: '1.1rem' }}>{rep.testName}</h4>
                   <span className="badge badge-scheduled">{rep.category}</span>
-                  {rep.isCritical && <span className="badge badge-risk-critical">CRITICAL ALARM</span>}
+                  {rep.isCritical && <span className="badge badge-risk-critical">{t('criticalAlarm')}</span>}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Patient: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{rep.patientName}</span> · Generated: {new Date(rep.createdAt).toLocaleDateString('en-IN')}
+                  {t('patientName')}: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{rep.patientName}</span> · {t('generated')}: {new Date(rep.createdAt).toLocaleDateString('en-IN')}
                 </div>
               </div>
-              <span className="badge badge-completed">IN VAULT</span>
+              <span className="badge badge-completed">{t('IN_VAULT')}</span>
             </div>
 
             {rep.isCritical && rep.criticalMessage && (
@@ -119,7 +119,7 @@ export default function LabDashboard() {
       {showCreateModal && (
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>Generate Lab Report & Push to ABHA Vault</h3>
+            <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>{t('uploadLabReportTitle')}</h3>
             {successMsg ? (
               <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--risk-low)', fontWeight: 700 }}>
                 {successMsg}
@@ -127,28 +127,28 @@ export default function LabDashboard() {
             ) : (
               <form onSubmit={handleCreateReport} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="input-group">
-                  <label>Patient Name</label>
+                  <label>{t('patientName')}</label>
                   <input className="input" value={reportForm.patientName} onChange={e => setReportForm({ ...reportForm, patientName: e.target.value })} required />
                 </div>
                 <div className="input-group">
-                  <label>Test Name</label>
+                  <label>{t('testNameLabel')}</label>
                   <input className="input" value={reportForm.testName} onChange={e => setReportForm({ ...reportForm, testName: e.target.value })} required />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="input-group">
-                    <label>Metric 1 Name & Value</label>
+                    <label>{t('metric1Label')}</label>
                     <input className="input" value={reportForm.metric1Name} onChange={e => setReportForm({ ...reportForm, metric1Name: e.target.value })} />
                     <input className="input" style={{ marginTop: '4px' }} value={reportForm.metric1Val} onChange={e => setReportForm({ ...reportForm, metric1Val: e.target.value })} />
                   </div>
                   <div className="input-group">
-                    <label>Metric 2 Name & Value</label>
+                    <label>{t('metric2Label')}</label>
                     <input className="input" value={reportForm.metric2Name} onChange={e => setReportForm({ ...reportForm, metric2Name: e.target.value })} />
                     <input className="input" style={{ marginTop: '4px' }} value={reportForm.metric2Val} onChange={e => setReportForm({ ...reportForm, metric2Val: e.target.value })} />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                  <button type="button" className="btn btn-ghost" onClick={() => setShowCreateModal(false)} style={{ flex: 1 }}>Cancel</button>
-                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }}><Send size={16} /> Push to Vault</button>
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowCreateModal(false)} style={{ flex: 1 }}>{t('cancel')}</button>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }}><Send size={16} /> {t('generateAndPush')}</button>
                 </div>
               </form>
             )}

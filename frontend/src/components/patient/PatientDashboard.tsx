@@ -55,7 +55,7 @@ export default function PatientDashboard() {
   };
 
   if (loading) {
-    return <div className="page-loader"><div className="spinner" /><span>Loading your health data...</span></div>;
+    return <div className="page-loader"><div className="spinner" /><span>{t('loading')}</span></div>;
   }
 
   const upcomingAppts = appointments.filter(a => ['SCHEDULED', 'IN_QUEUE'].includes(a.status));
@@ -63,10 +63,10 @@ export default function PatientDashboard() {
   const activeRx = prescriptions.filter(p => p.status === 'ACTIVE');
 
   const tabs = [
-    { key: 'overview', label: 'Overview', icon: Activity },
-    { key: 'appointments', label: 'Appointments', icon: Calendar },
-    { key: 'prescriptions', label: 'Prescriptions', icon: Pill },
-    { key: 'vault', label: 'Health Vault', icon: Shield },
+    { key: 'overview', label: t('overview'), icon: Activity },
+    { key: 'appointments', label: t('appointments'), icon: Calendar },
+    { key: 'prescriptions', label: t('prescriptions'), icon: Pill },
+    { key: 'vault', label: t('healthVault'), icon: Shield },
   ];
 
   return (
@@ -122,7 +122,7 @@ export default function PatientDashboard() {
         </div>
         <div className="glass-card stat-card stat-emerald">
           <div className="stat-card-header">
-            <span className="stat-card-label">{t('completed')}</span>
+            <span className="stat-card-label">{t('completedVisits')}</span>
             <div className="stat-card-icon"><CheckCircle2 size={18} /></div>
           </div>
           <div className="stat-card-value">{completedAppts.length}</div>
@@ -175,14 +175,14 @@ export default function PatientDashboard() {
             <div className="glass-card-static" style={{ padding: '20px' }}>
               <div className="section-header">
                 <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>📅 Upcoming Appointments</h3>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>📅 {t('upcoming')}</h3>
                 </div>
               </div>
               {upcomingAppts.length === 0 ? (
                 <div className="empty-state">
-                  <p className="empty-state-title">No upcoming appointments</p>
+                  <p className="empty-state-title">{t('noUpcoming')}</p>
                   <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}>
-                    <Plus size={14} /> Book Now
+                    <Plus size={14} /> {t('bookNow')}
                   </button>
                 </div>
               ) : (
@@ -192,10 +192,10 @@ export default function PatientDashboard() {
                       <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Dr. {appt.doctor?.firstName} {appt.doctor?.lastName}</div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                         <Clock size={12} /> {appt.scheduledDate} at {appt.scheduledTime}
-                        {appt.tokenNumber && <span> · Token #{appt.tokenNumber}</span>}
+                        {appt.tokenNumber && <span> · {t('token')} #{appt.tokenNumber}</span>}
                       </div>
                     </div>
-                    <span className={`badge ${getStatusBadge(appt.status)}`}>{appt.status}</span>
+                    <span className={`badge ${getStatusBadge(appt.status)}`}>{t(appt.status) || appt.status}</span>
                   </div>
                 ))
               )}
@@ -204,21 +204,21 @@ export default function PatientDashboard() {
             {/* Active Prescriptions */}
             <div className="glass-card-static" style={{ padding: '20px' }}>
               <div className="section-header">
-                <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>💊 Active Prescriptions</h3>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>💊 {t('activeRx')}</h3>
               </div>
               {activeRx.length === 0 ? (
                 <div className="empty-state">
-                  <p className="empty-state-title">No active prescriptions</p>
+                  <p className="empty-state-title">{t('noActiveRx')}</p>
                 </div>
               ) : (
                 activeRx.slice(0, 3).map(rx => (
                   <div key={rx.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border-glass)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{rx.diagnosis || 'Prescription'}</div>
-                      <span className="badge badge-completed">{rx.status}</span>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{rx.diagnosis || t('prescriptions')}</div>
+                      <span className="badge badge-completed">{t(rx.status) || rx.status}</span>
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Dr. {rx.doctor?.firstName} {rx.doctor?.lastName} · {rx.medicines?.length} medicines
+                      Dr. {rx.doctor?.firstName} {rx.doctor?.lastName} · {rx.medicines?.length} {t('medicines')}
                     </div>
                     <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
                       {rx.medicines?.slice(0, 3).map((med: any) => (
@@ -237,20 +237,20 @@ export default function PatientDashboard() {
         {activeTab === 'appointments' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontWeight: 700 }}>All Appointments</h3>
-              <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}><Plus size={14} /> Book New</button>
+              <h3 style={{ fontWeight: 700 }}>{t('allAppointments')}</h3>
+              <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}><Plus size={14} /> {t('bookNew')}</button>
             </div>
             <div className="glass-card-static" style={{ overflow: 'auto' }}>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Doctor</th>
-                    <th>Specialization</th>
-                    <th>Date & Time</th>
-                    <th>Type</th>
-                    <th>Token</th>
-                    <th>Status</th>
-                    <th>Complaint</th>
+                    <th>{t('doctor')}</th>
+                    <th>{t('specialization')}</th>
+                    <th>{t('dateTime')}</th>
+                    <th>{t('type')}</th>
+                    <th>{t('token')}</th>
+                    <th>{t('status')}</th>
+                    <th>{t('complaint')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -263,7 +263,7 @@ export default function PatientDashboard() {
                       <td>{appt.scheduledDate} · {appt.scheduledTime}</td>
                       <td><span className="badge badge-scheduled">{appt.type}</span></td>
                       <td style={{ textAlign: 'center' }}>#{appt.tokenNumber || '—'}</td>
-                      <td><span className={`badge ${getStatusBadge(appt.status)}`}>{appt.status.replace('_', ' ')}</span></td>
+                      <td><span className={`badge ${getStatusBadge(appt.status)}`}>{t(appt.status) || appt.status.replace('_', ' ')}</span></td>
                       <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{appt.chiefComplaint || '—'}</td>
                     </tr>
                   ))}
@@ -272,8 +272,8 @@ export default function PatientDashboard() {
               {appointments.length === 0 && (
                 <div className="empty-state">
                   <div className="empty-state-icon">📅</div>
-                  <p className="empty-state-title">No appointments yet</p>
-                  <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}><Plus size={14} /> Book Your First Appointment</button>
+                  <p className="empty-state-title">{t('noUpcoming')}</p>
+                  <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}><Plus size={14} /> {t('bookNow')}</button>
                 </div>
               )}
             </div>
@@ -282,11 +282,11 @@ export default function PatientDashboard() {
 
         {activeTab === 'prescriptions' && (
           <div>
-            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>My Prescriptions</h3>
+            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>{t('allPrescriptions')}</h3>
             {prescriptions.length === 0 ? (
               <div className="glass-card-static empty-state">
                 <div className="empty-state-icon">💊</div>
-                <p className="empty-state-title">No prescriptions yet</p>
+                <p className="empty-state-title">{t('noActiveRx')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -296,7 +296,7 @@ export default function PatientDashboard() {
                       <div>
                         <div style={{ fontWeight: 700, fontSize: '1rem' }}>
                           <Clipboard size={16} style={{ display: 'inline', marginRight: '6px' }} />
-                          {rx.diagnosis || 'Prescription'}
+                          {rx.diagnosis || t('prescriptions')}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                           Dr. {rx.doctor?.firstName} {rx.doctor?.lastName}
@@ -304,12 +304,12 @@ export default function PatientDashboard() {
                           {' · '}{new Date(rx.createdAt).toLocaleDateString('en-IN')}
                         </div>
                       </div>
-                      <span className={`badge ${rx.status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}`}>{rx.status}</span>
+                      <span className={`badge ${rx.status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}`}>{t(rx.status) || rx.status}</span>
                     </div>
                     {rx.notes && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px', fontStyle: 'italic' }}>📝 {rx.notes}</p>}
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>Medicines</div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>{t('medicines')}</div>
                     <div className="rx-medicine-row" style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                      <span>Medicine</span><span>Dosage</span><span>Frequency</span><span>Duration</span><span>Instructions</span>
+                      <span>{t('medicineLabel')}</span><span>{t('dosage')}</span><span>{t('frequency')}</span><span>{t('duration')}</span><span>{t('instructions')}</span>
                     </div>
                     {rx.medicines?.map((med: any) => (
                       <div key={med.id} className="rx-medicine-row">
@@ -331,15 +331,14 @@ export default function PatientDashboard() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <h3 style={{ fontWeight: 700 }}>🛡️ ABHA Health Vault</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Your encrypted health records — only shared with your consent</p>
+                <h3 style={{ fontWeight: 700 }}>{t('abhaVault')}</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('patientSubtitle')}</p>
               </div>
             </div>
             {healthRecords.length === 0 ? (
               <div className="glass-card-static empty-state">
                 <div className="empty-state-icon">📁</div>
-                <p className="empty-state-title">Your health vault is empty</p>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Lab reports, prescriptions, and records will appear here</p>
+                <p className="empty-state-title">{t('noHealthRecords')}</p>
               </div>
             ) : (
               <div className="dashboard-grid dashboard-grid-3">
@@ -352,7 +351,7 @@ export default function PatientDashboard() {
                       <span className="badge badge-scheduled">{record.recordType.replace('_', ' ')}</span>
                     </div>
                     <h4 style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '6px' }}>{record.title}</h4>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>{record.description || 'No description'}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>{record.description || '—'}</p>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                       {new Date(record.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </div>
@@ -369,7 +368,7 @@ export default function PatientDashboard() {
         <div className="modal-overlay" onClick={() => setShowSymptomChecker(false)}>
           <div className="modal" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">🧠 AI Symptom Checker</h2>
+              <h2 className="modal-title">{t('aiSymptomCheck')}</h2>
               <button className="modal-close" onClick={() => setShowSymptomChecker(false)}><X size={18} /></button>
             </div>
             <SymptomChecker />
@@ -382,7 +381,7 @@ export default function PatientDashboard() {
         <div className="modal-overlay" onClick={() => setShowBooking(false)}>
           <div className="modal" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">📅 Book Appointment</h2>
+              <h2 className="modal-title">{t('bookAppointment')}</h2>
               <button className="modal-close" onClick={() => setShowBooking(false)}><X size={18} /></button>
             </div>
             <BookAppointment onSuccess={() => { setShowBooking(false); fetchData(); }} />
