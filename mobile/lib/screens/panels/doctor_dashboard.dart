@@ -15,9 +15,9 @@ class DoctorDashboard extends StatelessWidget {
     final user = auth.user;
 
     final mockAppointments = [
-      {'patientName': 'Rahul Sharma', 'age': '34', 'gender': 'M', 'time': '10:30 AM', 'reason': 'High Fever & Cold'},
-      {'patientName': 'Priya Patel', 'age': '28', 'gender': 'F', 'time': '11:15 AM', 'reason': 'Regular Routine Checkup'},
-      {'patientName': 'Amit Verma', 'age': '45', 'gender': 'M', 'time': '02:00 PM', 'reason': 'Blood Pressure Monitoring'},
+      {'patientName': 'Rahul Sharma', 'age': '34', 'gender': 'M', 'time': '10:30 AM', 'reason': 'High Fever & Cold', 'triage': 'Priority', 'triageColor': AppColors.accentAmber},
+      {'patientName': 'Priya Patel', 'age': '28', 'gender': 'F', 'time': '11:15 AM', 'reason': 'Regular Routine Checkup', 'triage': 'Routine', 'triageColor': AppColors.accentEmerald},
+      {'patientName': 'Amit Verma', 'age': '45', 'gender': 'M', 'time': '02:00 PM', 'reason': 'Chest Tightness', 'triage': 'Critical', 'triageColor': AppColors.accentRose},
     ];
 
     return Scaffold(
@@ -26,13 +26,29 @@ class DoctorDashboard extends StatelessWidget {
         elevation: 0,
         title: Row(
           children: [
-            const Text('👨‍⚕️ ', style: TextStyle(fontSize: 20)),
-            Text('${user?.name ?? "Doctor"} (${lang.t('role_DOCTOR')})', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.accentIndigo.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.accentIndigo.withOpacity(0.4)),
+              ),
+              child: const Center(child: Text('👨‍⚕️', style: TextStyle(fontSize: 16))),
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user?.name ?? 'Dr. Practitioner', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                Text(lang.t('role_DOCTOR'), style: const TextStyle(fontSize: 10.5, color: AppColors.primaryLight)),
+              ],
+            ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.textSecondary),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary, size: 20),
             onPressed: () => auth.logout(),
           ),
         ],
@@ -42,12 +58,12 @@ class DoctorDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Stat Cards Row
+            // Practitioner Stats Bar
             Row(
               children: [
-                Expanded(child: _buildStatCard('OPD Queue', '12', 'Patients waiting', AppColors.primary)),
+                Expanded(child: _buildMetricTile('OPD Waiting Queue', '12', 'Patients in Clinic', AppColors.primary, Icons.people_outline_rounded)),
                 const SizedBox(width: 10),
-                Expanded(child: _buildStatCard('Consultations', '28', 'Completed today', AppColors.accentIndigo)),
+                Expanded(child: _buildMetricTile('Consultations Today', '28', '93% Completed', AppColors.accentEmerald, Icons.task_alt_rounded)),
               ],
             ),
             const SizedBox(height: 16),
@@ -59,8 +75,9 @@ class DoctorDashboard extends StatelessWidget {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accentIndigo,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: const Icon(Icons.edit_note, size: 22),
+                icon: const Icon(Icons.note_add_outlined, size: 20),
                 label: Text(lang.t('createPrescription')),
                 onPressed: () {
                   Navigator.push(
@@ -73,10 +90,13 @@ class DoctorDashboard extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // OPD Queue Header
-            Text(
-              'Today\'s OPD Appointments',
-              style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 16, fontWeight: FontWeight.bold),
+            // OPD Appointments Queue
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text('Today\'s Clinical Queue', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+                Text('Real-Time Sync', style: TextStyle(color: AppColors.primaryLight, fontSize: 11, fontWeight: FontWeight.w600)),
+              ],
             ),
             const SizedBox(height: 12),
 
@@ -87,37 +107,49 @@ class DoctorDashboard extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final appt = mockAppointments[index];
+                final Color triageColor = appt['triageColor'] as Color;
+
                 return Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: AppColors.glassBorder),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
-                          color: AppColors.accentIndigo.withOpacity(0.2),
+                          color: AppColors.surfaceLight,
                           shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.glassBorder),
                         ),
-                        child: const Center(child: Text('👤', style: TextStyle(fontSize: 20))),
+                        child: const Center(child: Text('👤', style: TextStyle(fontSize: 18))),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '${appt['patientName']} (${appt['gender']}, ${appt['age']}y)',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                            Row(
+                              children: [
+                                Text(
+                                  '${appt['patientName']}',
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '(${appt['gender']}, ${appt['age']}y)',
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 3),
                             Text(
-                              'Complaint: ${appt['reason']}',
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                              'Chief Complaint: ${appt['reason']}',
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
                             ),
                           ],
                         ),
@@ -125,18 +157,21 @@ class DoctorDashboard extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            appt['time']!,
-                            style: const TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.bold, fontSize: 12),
-                          ),
-                          const SizedBox(height: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.2),
+                              color: triageColor.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text('Consult', style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              appt['triage'] as String,
+                              style: TextStyle(color: triageColor, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            appt['time'] as String,
+                            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                           ),
                         ],
                       ),
@@ -151,22 +186,30 @@ class DoctorDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, String subtitle, Color color) {
+  Widget _buildMetricTile(String title, String val, String sub, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.glassBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-          const SizedBox(height: 6),
-          Text(value, style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.bold)),
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(val, style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 2),
-          Text(subtitle, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+          Text(sub, style: const TextStyle(color: AppColors.textMuted, fontSize: 10.5)),
         ],
       ),
     );
