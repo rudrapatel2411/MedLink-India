@@ -13,14 +13,13 @@ class SocketService extends ChangeNotifier {
 
   void initSocket() async {
     final token = await ApiService.getToken();
-    if (token == null) return;
 
     _socket = IO.io(
       ApiConstants.socketUrl,
       IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .setAuth({'token': token})
-          .disableAutoConnect()
+          .setTransports(['websocket', 'polling'])
+          .setAuth(token != null ? {'token': token} : {})
+          .enableAutoConnect()
           .build(),
     );
 
@@ -36,19 +35,28 @@ class SocketService extends ChangeNotifier {
       notifyListeners();
     });
 
-    _socket?.on('notification', (data) {
-      if (data is Map<String, dynamic>) {
-        _notifications.insert(0, data);
-        notifyListeners();
-      }
-    });
+    // Handle generic notifications
+    _socket?.on('notification', (data) => _addNotification(data));
+    _socket?.on('broadcast', (data) => _addNotification(data));
+    _socket?.on('emergency_sos', (data) => _addNotification(data));
+    _socket?.on('opd_queue_update', (data) => _addNotification(data));
+    _socket?.on('bed_update', (data) => _addNotification(data));
+    _socket?.on('prescription_issued', (data) => _addNotification(data));
+    _socket?.on('claim_updated', (data) => _addNotification(data));
+    _socket?.on('lab_report_pushed', (data) => _addNotification(data));
+  }
 
-    _socket?.on('broadcast', (data) {
-      if (data is Map<String, dynamic>) {
-        _notifications.insert(0, data);
-        notifyListeners();
-      }
-    });
+  void _addNotification(dynamic data) {
+    if (data is Map) {
+      _notifications.insert(0, Map<String, dynamic>.from(data));
+      notifyListeners();
+    }
+  }
+
+  void emitEvent(String event, Map<String, dynamic> data) {
+    if (_socket != null && _isConnected) {
+      _socket?.emit(event, data);
+    }
   }
 
   void disconnect() {

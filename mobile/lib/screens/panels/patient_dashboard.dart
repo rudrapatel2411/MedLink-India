@@ -157,6 +157,25 @@ class PatientDashboard extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // One-Tap Emergency Triangulation SOS Button
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 20),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accentRose,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 6,
+                  shadowColor: AppColors.accentRose.withOpacity(0.5),
+                ),
+                icon: const Icon(Icons.emergency_rounded, size: 24),
+                label: const Text('🚨 ONE-TAP EMERGENCY SOS (TRIANGULATE)', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                onPressed: () => _triggerEmergencySOS(context, socket),
+              ),
+            ),
+
             // Quick Actions Section
             const Text('Ecosystem Direct Actions', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
@@ -247,6 +266,30 @@ class PatientDashboard extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // Real-Time Hospital Bed & ICU Tracker
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Live Hospital Bed Radar (30s Sync)', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+                TextButton(
+                  onPressed: () => _showBedReservationModal(context, socket),
+                  child: const Text('Reserve Bed', style: TextStyle(color: AppColors.primaryLight, fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _buildBedCard('Normal Beds', '42 Available', AppColors.accentEmerald, Icons.king_bed_rounded),
+                const SizedBox(width: 10),
+                _buildBedCard('Oxygen Beds', '18 Available', AppColors.accentAmber, Icons.air_rounded),
+                const SizedBox(width: 10),
+                _buildBedCard('ICU Beds', '5 Available', AppColors.accentRose, Icons.medical_services_rounded),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
             // Health Metrics Grid
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -274,9 +317,28 @@ class PatientDashboard extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // Universal Digital Health Vault & Medication Reminders
+            const Text('Smart Prescription Reminders', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 10),
+            _buildMedicationTile(context, 'Tab Metformin 500mg', '1 Dose after breakfast', '08:00 AM', true),
+            const SizedBox(height: 8),
+            _buildMedicationTile(context, 'Cap Amoxicillin 250mg', '1 Capsule after lunch', '02:00 PM', false),
+
+            const SizedBox(height: 24),
+
             // Real-Time Socket Notifications
             if (socket.notifications.isNotEmpty) ...[
-              const Text('Ecosystem Live Feeds', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Ecosystem Live Feeds', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                    child: Text('${socket.notifications.length} Live Alerts', style: const TextStyle(color: AppColors.primaryLight, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
               ListView.builder(
                 shrinkWrap: true,
@@ -297,9 +359,19 @@ class PatientDashboard extends StatelessWidget {
                         const Icon(Icons.notifications_active_outlined, color: AppColors.primary, size: 18),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            notif['message'] ?? 'System notification',
-                            style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                notif['title'] ?? notif['message'] ?? 'Ecosystem Signal',
+                                style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                              ),
+                              if (notif['message'] != null && notif['title'] != null)
+                                Text(
+                                  notif['message'],
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                                ),
+                            ],
                           ),
                         ),
                       ],
@@ -311,6 +383,170 @@ class PatientDashboard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _triggerEmergencySOS(BuildContext context, SocketService socket) {
+    socket.emitEvent('emergency_sos', {
+      'patient': 'Rahul Sharma',
+      'location': 'Sector 14, City Center (GPS: 28.6139, 77.2090)',
+      'condition': 'Severe Cardiac Discomfort',
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AppColors.accentRose)),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: AppColors.accentRose, size: 28),
+            SizedBox(width: 10),
+            Text('🚨 Emergency SOS Dispatched', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text('Live Triangulation Active:', style: TextStyle(color: AppColors.primaryLight, fontSize: 12, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            Text('• Ambulance Fleet: ALS Ambulance #04 Dispatched (ETA: 5 mins)', style: TextStyle(color: Colors.white, fontSize: 12)),
+            Text('• Nearby Hospital: AIIMS Trauma Bay Pre-Notified', style: TextStyle(color: Colors.white, fontSize: 12)),
+            Text('• Blood Bank Sync: O -ve Units Reserved', style: TextStyle(color: Colors.white, fontSize: 12)),
+            Text('• Family Contacts: SMS payload sent with live GPS coordinates', style: TextStyle(color: Colors.white, fontSize: 12)),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('OK, Track Dispatch'),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBedReservationModal(BuildContext context, SocketService socket) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AppColors.glassBorder)),
+        title: const Text('Reserve Emergency Hospital Bed', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Select Bed Type:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.accentEmerald, minimumSize: const Size(double.infinity, 40)),
+              child: const Text('Normal Bed (42 Avail)'),
+              onPressed: () {
+                socket.emitEvent('bed_reservation', {'type': 'NORMAL', 'patient': 'Rahul Sharma'});
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Normal Bed Pre-Reserved! Token generated.')));
+              },
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.accentAmber, minimumSize: const Size(double.infinity, 40)),
+              child: const Text('Oxygen Bed (18 Avail)'),
+              onPressed: () {
+                socket.emitEvent('bed_reservation', {'type': 'OXYGEN', 'patient': 'Rahul Sharma'});
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Oxygen Bed Pre-Reserved! Hospital notified.')));
+              },
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.accentRose, minimumSize: const Size(double.infinity, 40)),
+              child: const Text('ICU Bed (5 Avail)'),
+              onPressed: () {
+                socket.emitEvent('bed_reservation', {'type': 'ICU', 'patient': 'Rahul Sharma'});
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ICU Bed Reserved! Critical bay alert sent.')));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBedCard(String title, String subtitle, Color color, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withOpacity(0.4)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 6),
+            Text(title, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 2),
+            Text(subtitle, style: TextStyle(color: color, fontSize: 9.5, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMedicationTile(BuildContext context, String medName, String dosage, String timeStr, bool taken) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.glassBorder),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.medication_rounded, color: AppColors.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(medName, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                      Text('$dosage • $timeStr', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                    ],
+                  ),
+                ],
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: taken ? AppColors.accentEmerald : AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(taken ? 'Dose Taken ✓' : 'Take Dose', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  setState(() {
+                    taken = !taken;
+                  });
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -342,7 +578,7 @@ class PatientDashboard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(val, style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(val, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
               const SizedBox(width: 4),
               Text(unit, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
             ],

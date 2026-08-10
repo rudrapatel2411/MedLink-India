@@ -2,15 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
+import '../../core/services/socket_service.dart';
 import '../../core/theme/app_theme.dart';
 
-class AmbulanceDashboard extends StatelessWidget {
+class AmbulanceDashboard extends StatefulWidget {
   const AmbulanceDashboard({Key? key}) : super(key: key);
+
+  @override
+  State<AmbulanceDashboard> createState() => _AmbulanceDashboardState();
+}
+
+class _AmbulanceDashboardState extends State<AmbulanceDashboard> {
+  bool _isNavigating = false;
+  int _etaMinutes = 6;
 
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final lang = Provider.of<LanguageProvider>(context);
+    final socket = Provider.of<SocketService>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -46,25 +56,59 @@ class AmbulanceDashboard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
-                      Icon(Icons.warning_amber_rounded, color: AppColors.accentRose, size: 24),
-                      SizedBox(width: 8),
-                      Text('ACTIVE EMERGENCY DISPATCH #SOS-108', style: TextStyle(color: AppColors.accentRose, fontWeight: FontWeight.bold, fontSize: 14)),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.warning_amber_rounded, color: AppColors.accentRose, size: 24),
+                          SizedBox(width: 8),
+                          Text('ACTIVE EMERGENCY DISPATCH #SOS-108', style: TextStyle(color: AppColors.accentRose, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: AppColors.accentRose, borderRadius: BorderRadius.circular(12)),
+                        child: Text(_isNavigating ? 'ETA: $_etaMinutes Mins' : 'ON-DISPATCH', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text('Pickup Location: Sector 14, MG Road, Metro Station Gate 2', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 10),
+                  const Text('Pickup Location: Sector 14, MG Road, Metro Station Gate 2 (GPS: 28.6139, 77.2090)', style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
-                  const Text('Destination Hospital: City Civil Hospital (ICU Triage)', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.accentRose),
-                      icon: const Icon(Icons.navigation_outlined),
-                      label: const Text('Start GPS Navigation'),
-                      onPressed: () {},
-                    ),
+                  const Text('Destination Hospital: City Civil Hospital (ICU Triage Bay #1)', style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5)),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(backgroundColor: _isNavigating ? AppColors.accentEmerald : AppColors.accentRose),
+                          icon: const Icon(Icons.navigation_outlined, size: 18),
+                          label: Text(_isNavigating ? 'GPS Navigation Live' : 'Start GPS Navigation'),
+                          onPressed: () {
+                            setState(() {
+                              _isNavigating = true;
+                            });
+                            socket.emitEvent('emergency_sos', {
+                              'title': 'Ambulance In-Transit',
+                              'message': 'ALS Unit #04 en-route to Sector 14. ETA: 5 mins.',
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('🗺️ Live GPS Navigation Started! Hospital Pre-Notified.')));
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                        child: const Text('Pre-Notify ER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          socket.emitEvent('notification', {
+                            'title': 'Hospital ER Notified',
+                            'message': 'Ambulance #04 approaching AIIMS ER in 5 mins with Cardiac patient.',
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('🔔 ER Trauma Bay Pre-Notified!')));
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

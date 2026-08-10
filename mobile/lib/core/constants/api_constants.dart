@@ -1,7 +1,20 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
-  // Configurable base URL (Defaults to localhost for development/emulator)
-  static const String baseUrl = 'http://10.0.2.2:5000/api'; // Android Emulator default, or 127.0.0.1
-  static const String socketUrl = 'http://10.0.2.2:5000';
+  // Configurable base URL (Auto-selects localhost for web/desktop and 10.0.2.2 for Android emulator)
+  static String get baseUrl {
+    if (kIsWeb) return 'http://localhost:5000/api/v1';
+    return defaultTargetPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:5000/api/v1'
+        : 'http://localhost:5000/api/v1';
+  }
+
+  static String get socketUrl {
+    if (kIsWeb) return 'http://localhost:5000';
+    return defaultTargetPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:5000'
+        : 'http://localhost:5000';
+  }
 
   // Auth endpoints
   static const String login = '/auth/login';

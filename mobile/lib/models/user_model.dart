@@ -19,7 +19,7 @@ class UserModel {
     return UserModel(
       id: json['id'] ?? '',
       email: json['email'] ?? '',
-      name: json['name'] ?? '',
+      name: json['name'] ?? '${json['firstName'] ?? ''} ${json['lastName'] ?? ''}'.trim(),
       role: json['role'] ?? 'PATIENT',
       abhaId: json['abhaId'],
       phone: json['phone'],

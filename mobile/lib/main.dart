@@ -15,9 +15,11 @@ import 'screens/panels/blood_bank_dashboard.dart';
 import 'screens/panels/insurance_dashboard.dart';
 import 'screens/panels/govt_dashboard.dart';
 import 'screens/panels/admin_dashboard.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = true;
   runApp(
     MultiProvider(
       providers: [

@@ -24,9 +24,11 @@ class AuthProvider extends ChangeNotifier {
         'password': password,
       });
 
-      if (res['token'] != null) {
-        await ApiService.saveToken(res['token']);
-        _user = UserModel.fromJson(res['user']);
+      final payload = (res is Map && res.containsKey('data') && res['data'] != null) ? res['data'] : res;
+
+      if (payload != null && payload['token'] != null) {
+        await ApiService.saveToken(payload['token']);
+        _user = UserModel.fromJson(payload['user']);
         _isLoading = false;
         notifyListeners();
         return true;
@@ -57,9 +59,11 @@ class AuthProvider extends ChangeNotifier {
         'role': role,
       });
 
-      if (res['token'] != null) {
-        await ApiService.saveToken(res['token']);
-        _user = UserModel.fromJson(res['user']);
+      final payload = (res is Map && res.containsKey('data') && res['data'] != null) ? res['data'] : res;
+
+      if (payload != null && payload['token'] != null) {
+        await ApiService.saveToken(payload['token']);
+        _user = UserModel.fromJson(payload['user']);
         _isLoading = false;
         notifyListeners();
         return true;

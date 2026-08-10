@@ -4,3 +4,6 @@ dist/
 *.db
 *.db-journal
 .DS_Store
+.dart_tool/
+mobile/build/
+.idea/
