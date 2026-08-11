@@ -54,6 +54,7 @@ class AppTheme {
           side: const BorderSide(color: AppColors.glassBorder, width: 1),
         ),
       ),
+
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,

@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/language_provider.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/services/api_service.dart';
-import '../../core/constants/api_constants.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
+
   const BookAppointmentScreen({Key? key}) : super(key: key);
 
   @override
