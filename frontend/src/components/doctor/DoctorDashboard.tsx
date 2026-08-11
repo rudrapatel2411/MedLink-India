@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { appointmentAPI, prescriptionAPI } from '../../services/api';
 import {
   Users, Calendar, Stethoscope, Activity,
-  CheckCircle2, Play, X, Pill
+  CheckCircle2, Play, X, Pill, Brain
 } from 'lucide-react';
 import CreatePrescription from './CreatePrescription';
 
@@ -70,6 +70,15 @@ export default function DoctorDashboard() {
       IN_PROGRESS: 'badge-in-progress', COMPLETED: 'badge-completed', CANCELLED: 'badge-cancelled',
     };
     return map[status] || 'badge-scheduled';
+  };
+
+  const getDifferentialDiagnosis = (complaint: string) => {
+    if (!complaint) return ['Viral Pharyngitis', 'Allergic Rhinitis'];
+    const lower = complaint.toLowerCase();
+    if (lower.includes('fever') && lower.includes('cough')) return ['Viral URI', 'Bronchitis', 'COVID-19'];
+    if (lower.includes('stomach') || lower.includes('pain')) return ['Acute Gastritis', 'Appendicitis', 'Food Poisoning'];
+    if (lower.includes('headache')) return ['Tension Headache', 'Migraine', 'Sinusitis'];
+    return ['Viral Syndrome', 'Fatigue', 'Dehydration'];
   };
 
   if (loading) {
@@ -188,6 +197,20 @@ export default function DoctorDashboard() {
                         {inProgress.patient.patientProfile.dateOfBirth && <span>🎂 {inProgress.patient.patientProfile.dateOfBirth}</span>}
                       </div>
                     )}
+                    
+                    {/* Differential Diagnosis Assist */}
+                    <div style={{ marginTop: '14px', background: 'rgba(6, 182, 212, 0.08)', padding: '10px 14px', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--primary-400)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary-400)', textTransform: 'uppercase', marginBottom: '6px' }}>
+                        <Brain size={14} /> AI Differential Diagnosis Assist
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {getDifferentialDiagnosis(inProgress.chiefComplaint).map((dx, idx) => (
+                          <span key={idx} style={{ background: 'var(--bg-input)', fontSize: '0.8rem', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-glass)' }}>
+                            {dx}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-primary btn-sm" onClick={() => openPrescription(inProgress)}>

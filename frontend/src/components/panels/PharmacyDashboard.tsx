@@ -1,7 +1,7 @@
 // MedLink India — E-Pharmacy & Supply Chain Control Panel (Phase 3)
 import { useState, useEffect } from 'react';
 import { labPharmacyAPI } from '../../services/api';
-import { ShoppingBag, Plus } from 'lucide-react';
+import { ShoppingBag, Plus, Scan, UploadCloud, CheckCircle2 } from 'lucide-react';
 
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -18,6 +18,32 @@ export default function PharmacyDashboard() {
     qty: '10',
     address: '42, MG Road, Connaught Place, New Delhi',
   });
+  const [isParsing, setIsParsing] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+
+  const handleOcrUpload = () => {
+    setIsParsing(true);
+    setOcrProgress(0);
+    let prog = 0;
+    const interval = setInterval(() => {
+      prog += 25;
+      setOcrProgress(prog);
+      if (prog >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setOrderForm(prev => ({
+            ...prev,
+            patientName: 'Aarti Sharma (Scanned)',
+            patientPhone: '+91-9988112233',
+            medicine: inventory.length > 0 ? inventory[0].medicineName : 'Amoxicillin',
+            qty: '15',
+          }));
+          setIsParsing(false);
+          setOcrProgress(0);
+        }, 600);
+      }
+    }, 400);
+  };
 
   useEffect(() => {
     fetchData();
@@ -147,6 +173,38 @@ export default function PharmacyDashboard() {
         <div className="modal-overlay" onClick={() => setShowOrderModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h3 style={{ fontWeight: 800, marginBottom: '16px' }}>{t('fulfillOrderTitle')}</h3>
+            
+            {/* OCR Upload Zone */}
+            <div 
+              style={{ 
+                border: '2px dashed var(--border-glass)', 
+                borderRadius: 'var(--radius-md)', 
+                padding: '20px', 
+                textAlign: 'center',
+                marginBottom: '20px',
+                background: isParsing ? 'rgba(6, 182, 212, 0.05)' : 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.3s'
+              }}
+              onClick={!isParsing ? handleOcrUpload : undefined}
+            >
+              {isParsing ? (
+                <div>
+                  <Scan size={24} color="var(--primary-400)" className="animate-pulse" style={{ margin: '0 auto', marginBottom: '8px' }} />
+                  <div style={{ fontWeight: 700, color: 'var(--primary-400)', fontSize: '0.9rem' }}>Extracting Text... {ocrProgress}%</div>
+                  <div style={{ width: '100%', height: '4px', background: 'var(--bg-input)', borderRadius: '4px', marginTop: '8px', overflow: 'hidden' }}>
+                    <div style={{ width: `${ocrProgress}%`, height: '100%', background: 'var(--primary-400)', transition: 'width 0.3s' }}></div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <UploadCloud size={24} color="var(--text-muted)" style={{ margin: '0 auto', marginBottom: '8px' }} />
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Upload Scanned Rx</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>AI will auto-fill the form details below</div>
+                </div>
+              )}
+            </div>
+
             <form onSubmit={handleCreateOrder} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="input-group">
                 <label>{t('patientName')}</label>

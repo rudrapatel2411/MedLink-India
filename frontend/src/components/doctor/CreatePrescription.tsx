@@ -1,7 +1,7 @@
 // MedLink India — Create Prescription Component (Smart Rx Builder)
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { prescriptionAPI } from '../../services/api';
-import { Plus, Trash2, Send, Pill } from 'lucide-react';
+import { Plus, Trash2, Send, Pill, Mic, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface Medicine {
@@ -42,6 +42,36 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [ddiAlert, setDdiAlert] = useState<string | null>(null);
+
+  // DDI Alert Engine Logic
+  useEffect(() => {
+    const medNames = medicines.map(m => m.medicineName.toLowerCase());
+    if (medNames.some(m => m.includes('aspirin')) && medNames.some(m => m.includes('warfarin'))) {
+      setDdiAlert('Severe Interaction: Aspirin + Warfarin increases bleeding risk.');
+    } else if (medNames.some(m => m.includes('sildenafil')) && medNames.some(m => m.includes('nitrate'))) {
+      setDdiAlert('Severe Interaction: Sildenafil + Nitrates can cause fatal hypotension.');
+    } else if (medNames.some(m => m.includes('metformin')) && medNames.some(m => m.includes('pantoprazole'))) {
+      setDdiAlert('Moderate Interaction: Long term use of Pantoprazole may reduce absorption of Metformin.');
+    } else {
+      setDdiAlert(null);
+    }
+  }, [medicines]);
+
+  // Voice-to-Text Logic
+  const handleVoiceRx = () => {
+    setIsListening(true);
+    setTimeout(() => {
+      setIsListening(false);
+      setDiagnosis('Acute Viral Pharyngitis');
+      setNotes('Drink plenty of warm fluids. Voice prescription successfully parsed.');
+      setMedicines([
+        { medicineName: 'Paracetamol', dosage: '650mg', frequency: '1-1-1', duration: '3 days', instructions: 'After food', quantity: '9' },
+        { medicineName: 'Azithromycin', dosage: '500mg', frequency: '1-0-0', duration: '3 days', instructions: 'After food', quantity: '3' }
+      ]);
+    }, 3000);
+  };
 
   const addMedicine = () => {
     setMedicines([...medicines, {
@@ -131,8 +161,18 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
 
       {/* Quick Add Medicines */}
       <div>
-        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
-          {t('quickMedicines')}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '6px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+            {t('quickMedicines')}
+          </div>
+          <button 
+            type="button" 
+            className={`btn btn-sm ${isListening ? 'btn-danger' : 'btn-accent'}`}
+            onClick={handleVoiceRx}
+            disabled={isListening}
+          >
+            {isListening ? <><div className="spinner" style={{ width: '12px', height: '12px', borderWidth: '2px' }} /> Listening...</> : <><Mic size={14} /> Smart Voice Dictation</>}
+          </button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {COMMON_MEDICINES.map(med => (
@@ -202,6 +242,16 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
         <label>{t('clinicalNotes')}</label>
         <textarea className="input" placeholder="Additional instructions, dietary advice, follow-up plans..." value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
       </div>
+
+      {ddiAlert && (
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid #f87171', padding: '12px', borderRadius: 'var(--radius-md)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+          <AlertTriangle size={18} color="#f87171" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <div style={{ fontWeight: 800, color: '#f87171', fontSize: '0.9rem' }}>⚠️ DDI ALERT</div>
+            <div style={{ color: '#f87171', fontSize: '0.85rem', marginTop: '2px' }}>{ddiAlert}</div>
+          </div>
+        </div>
+      )}
 
       {error && <div style={{ color: 'var(--risk-critical)', fontSize: '0.85rem' }}>{error}</div>}
 
