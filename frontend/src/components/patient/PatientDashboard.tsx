@@ -8,6 +8,10 @@ import {
 } from 'lucide-react';
 import SymptomChecker from './SymptomChecker';
 import BookAppointment from './BookAppointment';
+import DocumentViewer from './DocumentViewer';
+import HealthProfileEditor from './HealthProfileEditor';
+import HospitalTracker from './HospitalTracker';
+import MedicationReminders from './MedicationReminders';
 
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -17,10 +21,22 @@ export default function PatientDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [healthRecords, setHealthRecords] = useState<any[]>([]);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [showSymptomChecker, setShowSymptomChecker] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  
+  // Health Vault & Consent State
+  const [consents, setConsents] = useState<any[]>([]);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     fetchData();
@@ -28,14 +44,16 @@ export default function PatientDashboard() {
 
   const fetchData = async () => {
     try {
-      const [apptRes, rxRes, hrRes] = await Promise.all([
+      const [apptRes, rxRes, hrRes, consentRes] = await Promise.all([
         appointmentAPI.getMyAppointments(),
         prescriptionAPI.getMyPrescriptions(),
         healthRecordAPI.getMyRecords(),
+        healthRecordAPI.getMyConsents()
       ]);
       setAppointments(apptRes.data.data || []);
       setPrescriptions(rxRes.data.data || []);
       setHealthRecords(hrRes.data.data || []);
+      setConsents(consentRes.data.data || []);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
@@ -52,6 +70,16 @@ export default function PatientDashboard() {
       CANCELLED: 'badge-cancelled',
     };
     return map[status] || 'badge-scheduled';
+  };
+
+  const handleConsentResponse = async (id: string, action: 'GRANT' | 'DENY') => {
+    try {
+      await healthRecordAPI.respondToConsent(id, { action });
+      showToast(`Consent ${action === 'GRANT' ? 'granted' : 'denied'} successfully!`, 'success');
+      fetchData();
+    } catch (err) {
+      showToast(`Failed to ${action.toLowerCase()} consent.`, 'error');
+    }
   };
 
   if (loading) {
@@ -79,6 +107,13 @@ export default function PatientDashboard() {
         <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>
           {t('patientSubtitle')}
         </p>
+        {user?.role === 'PATIENT' && user?.abhaId && (
+          <div style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '100px' }}>
+            <Shield size={14} style={{ color: 'var(--emerald-500)' }} />
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Your ABHA ID:</span>
+            <span style={{ fontWeight: 800, color: 'var(--emerald-500)', letterSpacing: '0.5px' }}>{user.abhaId}</span>
+          </div>
+        )}
       </div>
 
       {/* Quick Action Bar */}
@@ -93,9 +128,10 @@ export default function PatientDashboard() {
               address: 'Connaught Place, New Delhi',
               bloodGroupNeeded: user?.patientProfile?.bloodGroup || 'O-ve',
             });
-            alert('🚨 EMERGENCY SOS DISPATCHED! Ambulance & ER Bay Notified!');
+            showToast('🚨 EMERGENCY SOS DISPATCHED! Ambulance & ER Bay Notified!', 'error');
           } catch (err) {
             console.error('SOS failed:', err);
+            showToast('Failed to send SOS. Please call emergency services directly.', 'error');
           }
         }}>
           {t('sosButton')}
@@ -103,13 +139,26 @@ export default function PatientDashboard() {
         <button className="btn btn-primary" onClick={() => setShowSymptomChecker(true)}>
           <Brain size={16} /> {t('aiSymptomCheck')}
         </button>
-        <button className="btn btn-accent" onClick={() => setShowBooking(true)}>
-          <Plus size={16} /> {t('bookAppointment')}
-        </button>
-        <button className="btn btn-ghost" onClick={() => setActiveTab('vault')}>
-          <Shield size={16} /> {t('abhaVault')}
+        <button className="btn btn-primary" onClick={() => setShowAppointmentModal(true)}>
+          <Calendar size={18} /> {t('bookAppointment')}
         </button>
       </div>
+
+      {/* Complete Profile Banner */}
+      {user?.role === 'PATIENT' && (!user.patientProfile?.bloodGroup || !user.patientProfile?.emergencyContact) && (
+        <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.2)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', background: 'var(--yellow-500)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Shield size={18} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Complete Your Health Profile</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Add blood group and emergency contacts for better care.</div>
+            </div>
+          </div>
+          <button className="btn btn-sm btn-ghost" onClick={() => setShowProfileEditor(true)}>Update Profile</button>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="dashboard-grid dashboard-grid-4 animate-in animate-in-delay-2" style={{ marginBottom: '28px' }}>
@@ -165,12 +214,32 @@ export default function PatientDashboard() {
             </button>
           );
         })}
+        <button
+          onClick={() => setActiveTab('tracker')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '10px 18px', border: 'none', borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+            background: activeTab === 'tracker' ? 'rgba(6, 182, 212, 0.08)' : 'transparent',
+            color: activeTab === 'tracker' ? 'var(--text-accent)' : 'var(--text-muted)',
+            fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+            borderBottom: activeTab === 'tracker' ? '2px solid var(--primary-500)' : '2px solid transparent',
+            transition: 'all var(--transition-fast)'
+          }}
+        >
+          <Activity size={15} /> Hospital Tracker
+        </button>
       </div>
 
       {/* Tab Content */}
       <div className="animate-in animate-in-delay-4">
         {activeTab === 'overview' && (
           <div className="dashboard-grid dashboard-grid-2">
+            
+            {/* Medication Reminders Widget */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <MedicationReminders prescriptions={prescriptions} />
+            </div>
+
             {/* Upcoming Appointments */}
             <div className="glass-card-static" style={{ padding: '20px' }}>
               <div className="section-header">
@@ -181,7 +250,7 @@ export default function PatientDashboard() {
               {upcomingAppts.length === 0 ? (
                 <div className="empty-state">
                   <p className="empty-state-title">{t('noUpcoming')}</p>
-                  <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}>
+                  <button className="btn btn-accent btn-sm" onClick={() => setShowAppointmentModal(true)}>
                     <Plus size={14} /> {t('bookNow')}
                   </button>
                 </div>
@@ -238,7 +307,7 @@ export default function PatientDashboard() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontWeight: 700 }}>{t('allAppointments')}</h3>
-              <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}><Plus size={14} /> {t('bookNew')}</button>
+              <button className="btn btn-accent btn-sm" onClick={() => setShowAppointmentModal(true)}><Plus size={14} /> {t('bookNew')}</button>
             </div>
             <div className="glass-card-static" style={{ overflow: 'auto' }}>
               <table className="data-table">
@@ -273,7 +342,7 @@ export default function PatientDashboard() {
                 <div className="empty-state">
                   <div className="empty-state-icon">📅</div>
                   <p className="empty-state-title">{t('noUpcoming')}</p>
-                  <button className="btn btn-accent btn-sm" onClick={() => setShowBooking(true)}><Plus size={14} /> {t('bookNow')}</button>
+                  <button className="btn btn-accent btn-sm" onClick={() => setShowAppointmentModal(true)}><Plus size={14} /> {t('bookNow')}</button>
                 </div>
               )}
             </div>
@@ -335,6 +404,35 @@ export default function PatientDashboard() {
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('patientSubtitle')}</p>
               </div>
             </div>
+
+            {/* Pending Consent Requests */}
+            {consents.filter(c => c.status === 'PENDING').length > 0 && (
+              <div style={{ marginBottom: '24px' }}>
+                <h4 style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--risk-critical)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                  <Shield size={16} /> Data Access Requests
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {consents.filter(c => c.status === 'PENDING').map(consent => (
+                    <div key={consent.id} className="glass-card" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--risk-critical)' }}>
+                      <div>
+                        <div style={{ fontWeight: 700 }}>Dr. {consent.requester?.firstName} {consent.requester?.lastName}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          Reason: {consent.purpose} · Duration: {consent.duration.replace('_', ' ')}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--primary-400)', marginTop: '4px', fontWeight: 600 }}>
+                          Requests: {JSON.parse(consent.recordTypes || '[]').join(', ').replace(/_/g, ' ')}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => handleConsentResponse(consent.id, 'DENY')}>Deny</button>
+                        <button className="btn btn-accent btn-sm" onClick={() => handleConsentResponse(consent.id, 'GRANT')}>Grant Access</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {healthRecords.length === 0 ? (
               <div className="glass-card-static empty-state">
                 <div className="empty-state-icon">📁</div>
@@ -343,7 +441,7 @@ export default function PatientDashboard() {
             ) : (
               <div className="dashboard-grid dashboard-grid-3">
                 {healthRecords.map(record => (
-                  <div key={record.id} className="glass-card" style={{ padding: '20px' }}>
+                  <div key={record.id} className="glass-card" style={{ padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => setSelectedRecord(record)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                       <span style={{ fontSize: '1.2rem' }}>
                         {record.recordType === 'LAB_REPORT' ? '🧪' : record.recordType === 'PRESCRIPTION' ? '💊' : record.recordType === 'VACCINATION' ? '💉' : '📄'}
@@ -361,7 +459,37 @@ export default function PatientDashboard() {
             )}
           </div>
         )}
+
+        {/* --- TRACKER TAB --- */}
+        {activeTab === 'tracker' && (
+          <div className="animate-in animate-in-delay-3">
+            <HospitalTracker />
+          </div>
+        )}
       </div>
+
+      {/* Appointment Booking Modal */}
+      {showAppointmentModal && (
+        <div className="modal-overlay" onClick={() => setShowAppointmentModal(false)}>
+          <div className="modal" style={{ maxWidth: '800px', background: 'var(--bg-primary)' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ borderBottom: '1px solid var(--border-glass)' }}>
+              <h2 className="modal-title">Book Consultation</h2>
+              <button className="modal-close" onClick={() => setShowAppointmentModal(false)}><X size={18} /></button>
+            </div>
+            <div style={{ padding: '24px', overflowY: 'auto', maxHeight: '70vh' }}>
+              <BookAppointment onSuccess={() => {
+                setShowAppointmentModal(false);
+                fetchData();
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Editor Modal */}
+      {showProfileEditor && (
+        <HealthProfileEditor onClose={() => setShowProfileEditor(false)} />
+      )}
 
       {/* Symptom Checker Modal */}
       {showSymptomChecker && (
@@ -384,8 +512,31 @@ export default function PatientDashboard() {
               <h2 className="modal-title">{t('bookAppointment')}</h2>
               <button className="modal-close" onClick={() => setShowBooking(false)}><X size={18} /></button>
             </div>
-            <BookAppointment onSuccess={() => { setShowBooking(false); fetchData(); }} />
+            <BookAppointment onSuccess={() => { 
+              setShowBooking(false); 
+              fetchData(); 
+              showToast('Appointment booked successfully!', 'success');
+            }} />
           </div>
+        </div>
+      )}
+
+      {/* Vault Document Viewer Modal */}
+      {selectedRecord && (
+        <DocumentViewer 
+          record={selectedRecord} 
+          user={user} 
+          onClose={() => setSelectedRecord(null)} 
+        />
+      )}
+
+      {/* Toast Notification Overlay */}
+      {toast && (
+        <div className={`toast toast-${toast.type} toast-card`}>
+          <div style={{ flex: 1 }}>{toast.message}</div>
+          <button onClick={() => setToast(null)} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', opacity: 0.8 }}>
+            <X size={16} />
+          </button>
         </div>
       )}
     </div>

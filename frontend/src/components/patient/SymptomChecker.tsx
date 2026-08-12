@@ -1,7 +1,7 @@
 // MedLink India — AI Symptom Checker Component
 import { useState } from 'react';
 import { symptomAPI } from '../../services/api';
-import { Brain, Plus, Stethoscope } from 'lucide-react';
+import { Brain, Plus, Stethoscope, Mic, MicOff } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 const COMMON_SYMPTOMS = [
@@ -19,6 +19,7 @@ export default function SymptomChecker() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isListening, setIsListening] = useState(false);
 
   const addSymptom = (symptom: string) => {
     if (!selectedSymptoms.includes(symptom)) {
@@ -35,6 +36,51 @@ export default function SymptomChecker() {
       setSelectedSymptoms([...selectedSymptoms, customSymptom.trim()]);
       setCustomSymptom('');
     }
+  };
+
+  const toggleListen = () => {
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('Voice recognition is not supported in this browser.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-IN'; // Works for Hinglish/English
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setCustomSymptom('');
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setCustomSymptom(transcript);
+      if (transcript.trim() && !selectedSymptoms.includes(transcript.trim())) {
+        setSelectedSymptoms(prev => [...prev, transcript.trim()]);
+        setTimeout(() => setCustomSymptom(''), 1000);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error(event);
+      setError('Voice recognition failed. Please try typing.');
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
   };
 
   const handleCheck = async () => {
@@ -85,11 +131,19 @@ export default function SymptomChecker() {
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
         <input
           className="input"
-          placeholder={t('customSymptomPlaceholder')}
+          placeholder={isListening ? 'Listening...' : t('customSymptomPlaceholder')}
           value={customSymptom}
           onChange={e => setCustomSymptom(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && addCustomSymptom()}
+          style={{ borderColor: isListening ? 'var(--primary-500)' : undefined }}
         />
+        <button 
+          className={`btn ${isListening ? 'btn-danger' : 'btn-ghost'}`} 
+          onClick={toggleListen}
+          title="Speak your symptoms"
+        >
+          {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+        </button>
         <button className="btn btn-ghost" onClick={addCustomSymptom}><Plus size={16} /></button>
       </div>
 

@@ -105,13 +105,23 @@ export const getPatientRecords = asyncHandler(async (req: Request, res: Response
 
 /**
  * POST /api/v1/health-records/consent/request
- * Doctor requests consent to view patient records
+ * Doctor requests consent to view patient records using ABHA ID
  */
 export const requestConsent = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
-  const { patientId, purpose, recordTypes, duration } = req.body;
+  const { patientId: abhaId, purpose, recordTypes, duration } = req.body;
 
-  if (!patientId || !purpose) {
-    throw new ApiError(400, 'patientId and purpose are required.');
+  if (!abhaId || !purpose) {
+    throw new ApiError(400, 'ABHA ID and purpose are required.');
+  }
+
+  // Find patient by ABHA ID or fallback to UUID for backward compatibility
+  let patient = await prisma.user.findFirst({ where: { abhaId } });
+  if (!patient) {
+    patient = await prisma.user.findUnique({ where: { id: abhaId } });
+  }
+
+  if (!patient || patient.role !== 'PATIENT') {
+    throw new ApiError(404, 'Invalid ABHA ID. No patient found.');
   }
 
   const durationMap: Record<string, number> = {
@@ -124,7 +134,7 @@ export const requestConsent = asyncHandler(async (req: Request, res: Response, _
   const consent = await prisma.consentRequest.create({
     data: {
       requesterId: req.user!.userId,
-      patientId,
+      patientId: patient.id,
       purpose,
       recordTypes: JSON.stringify(recordTypes || ['LAB_REPORT', 'PRESCRIPTION', 'DISCHARGE_SUMMARY']),
       duration: duration || '1_HOUR',

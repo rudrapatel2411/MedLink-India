@@ -1,12 +1,14 @@
 // MedLink India — Doctor Dashboard (OPD Consult Desk)
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { appointmentAPI, prescriptionAPI } from '../../services/api';
+import { appointmentAPI, prescriptionAPI, healthRecordAPI } from '../../services/api';
 import {
   Users, Calendar, Stethoscope, Activity,
-  CheckCircle2, Play, X, Pill, Brain
+  CheckCircle2, Play, X, Pill, Shield, Search, Brain
 } from 'lucide-react';
 import CreatePrescription from './CreatePrescription';
+import DocumentViewer from '../patient/DocumentViewer';
+import AICoPilotDesk from './AICoPilotDesk';
 
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -19,8 +21,49 @@ export default function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState('opd');
   const [loading, setLoading] = useState(true);
   const [showRxModal, setShowRxModal] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [selectedPatient] = useState<any>(null);
   const [selectedAppt, setSelectedAppt] = useState<any>(null);
+  const [showCoPilot, setShowCoPilot] = useState(false);
+
+  const openPrescription = (appt: any) => {
+    // Legacy support for direct prescription
+    setSelectedAppt(appt);
+    setShowRxModal(true);
+  };
+
+  // Demo Appt Generator
+  const openDemoCoPilot = () => {
+    const demoAppt = {
+      id: 'demo-123',
+      tokenNumber: 99,
+      chiefComplaint: 'Fever and severe cough for 3 days',
+      patient: {
+        id: 'patient-456',
+        abhaId: '91-8829-1029-44',
+        firstName: 'Rahul',
+        lastName: 'Sharma',
+        patientProfile: {
+          gender: 'Male',
+          dateOfBirth: '1990-05-12',
+          bloodGroup: 'B+',
+          height: 175,
+          weight: 78,
+          allergies: 'Penicillin, Peanuts',
+          chronicConditions: 'Type-2 Diabetes'
+        }
+      }
+    };
+    setSelectedAppt(demoAppt);
+    setShowCoPilot(true);
+  };
+
+  // Consent & Vault State
+  const [consents, setConsents] = useState<any[]>([]);
+  const [patientIdSearch, setPatientIdSearch] = useState('');
+  const [patientRecords, setPatientRecords] = useState<any[]>([]);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [requestError, setRequestError] = useState('');
+  const [requestSuccess, setRequestSuccess] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -28,13 +71,15 @@ export default function DoctorDashboard() {
 
   const fetchData = async () => {
     try {
-      const [apptRes, rxRes] = await Promise.all([
+      const [apptRes, rxRes, consentRes] = await Promise.all([
         appointmentAPI.getMyAppointments(),
         prescriptionAPI.getMyPrescriptions(),
+        healthRecordAPI.getMyConsents(),
       ]);
       const allAppts = apptRes.data.data || [];
       setAppointments(allAppts);
       setPrescriptions(rxRes.data.data || []);
+      setConsents(consentRes.data.data || []);
 
       // Build today's OPD queue
       const today = new Date().toISOString().split('T')[0];
@@ -44,6 +89,84 @@ export default function DoctorDashboard() {
       setOpdQueue(todayQueue);
     } catch (err) {
       console.error('Failed to fetch:', err);
+      // Fallback mock data for demo/bypass-login mode
+      const today = new Date().toISOString().split('T')[0];
+      const mockAppts = [
+        {
+          id: 'mock-1',
+          patientId: 'patient-1',
+          doctorId: 'doctor-1',
+          scheduledDate: today,
+          scheduledTime: '10:30 AM',
+          type: 'OPD',
+          status: 'IN_QUEUE',
+          tokenNumber: 4,
+          chiefComplaint: 'Chest tightness, palpitations & mild dizziness',
+          patient: {
+            id: 'patient-1',
+            firstName: 'Rahul',
+            lastName: 'Kumar',
+            abhaId: 'ABHA-91-1234-5678',
+            patientProfile: {
+              gender: 'MALE',
+              dateOfBirth: '1990-05-15',
+              bloodGroup: 'B+',
+              allergies: 'Penicillin, Sulfa Drugs',
+              chronicConditions: 'Hypertension, Type 2 Diabetes'
+            }
+          }
+        },
+        {
+          id: 'mock-2',
+          patientId: 'patient-2',
+          doctorId: 'doctor-1',
+          scheduledDate: today,
+          scheduledTime: '11:15 AM',
+          type: 'OPD',
+          status: 'IN_QUEUE',
+          tokenNumber: 5,
+          chiefComplaint: 'High Fever, joint pain, and severe headache',
+          patient: {
+            id: 'patient-2',
+            firstName: 'Ananya',
+            lastName: 'Sharma',
+            abhaId: 'ABHA-91-9876-5432',
+            patientProfile: {
+              gender: 'FEMALE',
+              dateOfBirth: '1994-08-22',
+              bloodGroup: 'O+',
+              allergies: 'None',
+              chronicConditions: 'None'
+            }
+          }
+        },
+        {
+          id: 'mock-3',
+          patientId: 'patient-3',
+          doctorId: 'doctor-1',
+          scheduledDate: today,
+          scheduledTime: '12:00 PM',
+          type: 'OPD',
+          status: 'IN_QUEUE',
+          tokenNumber: 6,
+          chiefComplaint: 'Right knee joint stiffness and pain',
+          patient: {
+            id: 'patient-3',
+            firstName: 'Vikas',
+            lastName: 'Malhotra',
+            abhaId: 'ABHA-91-5544-3322',
+            patientProfile: {
+              gender: 'MALE',
+              dateOfBirth: '1982-11-04',
+              bloodGroup: 'AB+',
+              allergies: 'NSAID',
+              chronicConditions: 'Asthma'
+            }
+          }
+        }
+      ];
+      setAppointments(mockAppts);
+      setOpdQueue(mockAppts);
     } finally {
       setLoading(false);
     }
@@ -58,10 +181,10 @@ export default function DoctorDashboard() {
     }
   };
 
-  const openPrescription = (appt: any) => {
-    setSelectedPatient(appt.patient);
+  const startConsultation = (appt: any) => {
+    handleStatusUpdate(appt.id, 'IN_PROGRESS');
     setSelectedAppt(appt);
-    setShowRxModal(true);
+    setShowCoPilot(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -81,6 +204,33 @@ export default function DoctorDashboard() {
     return ['Viral Syndrome', 'Fatigue', 'Dehydration'];
   };
 
+  const handleRequestConsent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRequestError('');
+    setRequestSuccess('');
+    try {
+      await healthRecordAPI.requestConsent({
+        patientId: patientIdSearch,
+        purpose: 'Comprehensive diagnostic review',
+        recordTypes: ['LAB_REPORT', 'PRESCRIPTION', 'DISCHARGE_SUMMARY', 'VACCINATION'],
+        duration: '1_DAY'
+      });
+      setRequestSuccess('Consent request sent successfully!');
+      fetchData();
+    } catch (err: any) {
+      setRequestError(err.response?.data?.message || 'Failed to request consent. Check Patient ID.');
+    }
+  };
+
+  const loadPatientRecords = async (patientId: string) => {
+    try {
+      const res = await healthRecordAPI.getPatientRecords(patientId);
+      setPatientRecords(res.data.data || []);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to fetch records. Consent might be expired.');
+    }
+  };
+
   if (loading) {
     return <div className="page-loader"><div className="spinner" /><span>{t('loadingClinic')}</span></div>;
   }
@@ -96,18 +246,29 @@ export default function DoctorDashboard() {
     { key: 'opd', label: t('opdQueue'), icon: Users },
     { key: 'appointments', label: t('allAppointments'), icon: Calendar },
     { key: 'prescriptions', label: t('prescriptions'), icon: Pill },
+    { key: 'vault', label: 'Patient Vault Access', icon: Shield },
   ];
 
   return (
     <div>
       {/* Welcome */}
-      <div style={{ marginBottom: '28px' }} className="animate-in">
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>
-          {greeting}, <span style={{ color: 'var(--primary-400)' }}>Dr. {user?.lastName}</span> 👨‍⚕️
-        </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>
-          {user?.doctorProfile?.specialization || 'Doctor'} · {user?.doctorProfile?.hospitalAffiliation || ''}
-        </p>
+      <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="animate-in">
+        <div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>
+            {greeting}, <span style={{ color: 'var(--primary-400)' }}>Dr. {user?.lastName}</span> 👨‍⚕️
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>
+            {user?.doctorProfile?.specialization || 'Doctor'} · {user?.doctorProfile?.hospitalAffiliation || ''}
+          </p>
+        </div>
+        <button 
+          className="btn btn-primary" 
+          onClick={openDemoCoPilot}
+          style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: 700, borderRadius: 'var(--radius-lg)', boxShadow: '0 4px 14px rgba(6, 182, 212, 0.4)' }}
+        >
+          <Brain size={20} style={{ marginRight: '8px' }} />
+          Test AI Co-Pilot Desk
+        </button>
       </div>
 
       {/* Stats */}
@@ -213,11 +374,8 @@ export default function DoctorDashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-primary btn-sm" onClick={() => openPrescription(inProgress)}>
-                      <Pill size={14} /> {t('writeRx')}
-                    </button>
-                    <button className="btn btn-accent btn-sm" onClick={() => handleStatusUpdate(inProgress.id, 'COMPLETED')}>
-                      <CheckCircle2 size={14} /> {t('completeConsultation')}
+                    <button className="btn btn-primary btn-sm" onClick={() => { setSelectedAppt(inProgress); setShowCoPilot(true); }}>
+                      <Stethoscope size={14} /> Open AI Co-Pilot
                     </button>
                   </div>
                 </div>
@@ -230,6 +388,9 @@ export default function DoctorDashboard() {
               <div className="glass-card-static empty-state">
                 <div className="empty-state-icon">👨‍⚕️</div>
                 <p className="empty-state-title">{t('noPatientsInQueue')}</p>
+                <button className="btn btn-primary" onClick={openDemoCoPilot} style={{ marginTop: '16px' }}>
+                  <Stethoscope size={16} /> Open Demo AI Co-Pilot
+                </button>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -258,9 +419,14 @@ export default function DoctorDashboard() {
                         </button>
                       )}
                       {appt.status === 'IN_QUEUE' && !inProgress && (
-                        <button className="btn btn-primary btn-sm" onClick={() => handleStatusUpdate(appt.id, 'IN_PROGRESS')}>
-                          <Play size={12} /> {t('startConsultation')}
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button className="btn btn-primary btn-sm" onClick={() => startConsultation(appt)} style={{ background: 'var(--primary-500)' }}>
+                            <Brain size={14} /> AI Co-Pilot
+                          </button>
+                          <button className="btn btn-ghost btn-sm" onClick={() => handleStatusUpdate(appt.id, 'IN_PROGRESS')}>
+                            <Play size={14} /> Normal
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -299,9 +465,14 @@ export default function DoctorDashboard() {
                       <td><span className={`badge ${getStatusBadge(appt.status)}`}>{t(appt.status) || appt.status.replace('_', ' ')}</span></td>
                       <td>
                         {appt.status === 'IN_PROGRESS' && (
-                          <button className="btn btn-primary btn-sm" onClick={() => openPrescription(appt)}>
-                            <Pill size={12} /> {t('writeRx')}
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn btn-primary btn-sm" onClick={() => { setSelectedAppt(appt); setShowCoPilot(true); }}>
+                              <Brain size={12} /> AI Co-Pilot
+                            </button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => openPrescription(appt)}>
+                              <Pill size={12} /> Rx
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -354,7 +525,95 @@ export default function DoctorDashboard() {
             )}
           </div>
         )}
+
+        {activeTab === 'vault' && (
+          <div>
+            <h3 style={{ fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Shield size={20} /> Request Vault Access</h3>
+            
+            <div className="glass-card" style={{ padding: '20px', marginBottom: '30px' }}>
+              <form onSubmit={handleRequestConsent} style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+                <div className="input-group" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Patient ID (ABHA)</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Enter Patient ID (e.g. cmr3r5...)"
+                    value={patientIdSearch}
+                    onChange={e => setPatientIdSearch(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ height: '42px' }}>
+                  <Search size={16} /> Request Consent
+                </button>
+              </form>
+              {requestError && <div style={{ color: 'var(--risk-critical)', fontSize: '0.85rem', marginTop: '8px' }}>{requestError}</div>}
+              {requestSuccess && <div style={{ color: 'var(--emerald-500)', fontSize: '0.85rem', marginTop: '8px' }}>{requestSuccess}</div>}
+            </div>
+
+            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>My Active Consents</h3>
+            <div className="dashboard-grid dashboard-grid-2">
+              {consents.length === 0 ? (
+                <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+                  <p className="empty-state-title">No consent requests.</p>
+                </div>
+              ) : (
+                consents.map(consent => (
+                  <div key={consent.id} className="glass-card-static" style={{ padding: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>{consent.patient?.firstName} {consent.patient?.lastName}</div>
+                      <span className={`badge ${consent.status === 'GRANTED' ? 'badge-completed' : consent.status === 'PENDING' ? 'badge-in-progress' : 'badge-cancelled'}`}>
+                        {consent.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px', marginBottom: '12px' }}>
+                      Patient ABHA ID: {consent.patient?.abhaId || consent.patientId.substring(0,8)}
+                    </div>
+                    {consent.status === 'GRANTED' && (
+                      <button className="btn btn-accent btn-sm" onClick={() => loadPatientRecords(consent.patientId)} style={{ width: '100%' }}>
+                        View Health Records
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {patientRecords.length > 0 && (
+              <div style={{ marginTop: '30px' }}>
+                <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>Health Records (Granted Access)</h3>
+                <div className="dashboard-grid dashboard-grid-3">
+                  {patientRecords.map(record => (
+                    <div key={record.id} className="glass-card" style={{ padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => setSelectedRecord(record)}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                        <span style={{ fontSize: '1.2rem' }}>
+                          {record.recordType === 'LAB_REPORT' ? '🧪' : record.recordType === 'PRESCRIPTION' ? '💊' : record.recordType === 'VACCINATION' ? '💉' : '📄'}
+                        </span>
+                        <span className="badge badge-scheduled">{record.recordType.replace('_', ' ')}</span>
+                      </div>
+                      <h4 style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '6px' }}>{record.title}</h4>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>{record.description || '—'}</p>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {new Date(record.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Vault Document Viewer Modal (Shared with Patient) */}
+      {selectedRecord && (
+        <DocumentViewer 
+          record={selectedRecord} 
+          user={selectedPatient || { firstName: selectedRecord.patientName }} 
+          onClose={() => setSelectedRecord(null)} 
+        />
+      )}
+
 
       {/* Create Prescription Modal */}
       {showRxModal && selectedPatient && (
@@ -371,6 +630,19 @@ export default function DoctorDashboard() {
             />
           </div>
         </div>
+      )}
+
+      {/* AI Co-Pilot Desk */}
+      {showCoPilot && selectedAppt && (
+        <AICoPilotDesk 
+          appointment={selectedAppt}
+          onClose={() => setShowCoPilot(false)}
+          onComplete={() => {
+            setShowCoPilot(false);
+            handleStatusUpdate(selectedAppt.id, 'COMPLETED');
+            fetchData();
+          }}
+        />
       )}
     </div>
   );

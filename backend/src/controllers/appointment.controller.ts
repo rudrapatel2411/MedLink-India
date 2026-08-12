@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
 import { ApiResponse, ApiError, asyncHandler } from '../utils/ApiResponse';
+import { emitNotification } from '../socket';
 
 /**
  * POST /api/v1/appointments
@@ -46,6 +47,13 @@ export const createAppointment = asyncHandler(async (req: Request, res: Response
       patient: { select: { id: true, firstName: true, lastName: true, email: true } },
       doctor: { select: { id: true, firstName: true, lastName: true, email: true } },
     },
+  });
+
+  // Emit notification to Doctor's OPD Queue
+  emitNotification('appointment:booked', {
+    title: '📅 NEW APPOINTMENT BOOKED',
+    message: `Patient ${appointment.patient?.firstName} booked an appointment for ${scheduledTime}`,
+    data: appointment,
   });
 
   res.status(201).json(

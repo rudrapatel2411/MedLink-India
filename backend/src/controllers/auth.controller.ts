@@ -7,6 +7,13 @@ import { ApiResponse, ApiError, asyncHandler } from '../utils/ApiResponse';
 import { ALL_ROLES } from '../utils/roles';
 
 /**
+ * Utility to generate a realistic 14-digit ABHA ID
+ */
+const generateAbhaId = () => {
+  return `91-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
+};
+
+/**
  * POST /api/v1/auth/register
  * Register a new user (Patient, Doctor, etc.)
  */
@@ -51,6 +58,7 @@ export const register = asyncHandler(async (req: Request, res: Response, _next: 
       phone: phone || null,
       role: userRole,
       isVerified: true,
+      abhaId: userRole === 'PATIENT' ? generateAbhaId() : null,
     },
     include: { patientProfile: true, doctorProfile: true },
   });
@@ -119,6 +127,7 @@ export const login = asyncHandler(async (req: Request, res: Response, _next: Nex
         lastName,
         role,
         isVerified: true,
+        abhaId: role === 'PATIENT' ? generateAbhaId() : null,
       },
       include: { patientProfile: true, doctorProfile: true },
     });

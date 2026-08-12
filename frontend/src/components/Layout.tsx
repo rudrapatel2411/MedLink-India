@@ -88,6 +88,14 @@ export default function Layout({ children, activeRole, onRoleChange }: LayoutPro
       addToast(data.title || '🏛️ PUBLIC HEALTH EPIDEMIC ALERT', data.message, 'warning');
     });
 
+    socket.on('hospital:bedUpdate', (data: any) => {
+      addToast(data.title || '🏥 BED MATRIX UPDATE', data.message, 'info');
+    });
+
+    socket.on('appointment:booked', (data: any) => {
+      addToast(data.title || '📅 APPOINTMENT BOOKED', data.message, 'info');
+    });
+
     return () => {
       socket.off('emergency:sos');
       socket.off('blood:sos');
@@ -96,6 +104,8 @@ export default function Layout({ children, activeRole, onRoleChange }: LayoutPro
       socket.off('pharmacy:order');
       socket.off('insurance:claim');
       socket.off('govt:outbreak');
+      socket.off('hospital:bedUpdate');
+      socket.off('appointment:booked');
     };
   }, []);
 

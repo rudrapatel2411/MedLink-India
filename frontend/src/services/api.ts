@@ -77,8 +77,12 @@ export const healthRecordAPI = {
 
 // ─────────────── SYMPTOM TRIAGE APIs ───────────────
 export const symptomAPI = {
-  check: (data: any) => api.post('/symptoms/check', data),
+  check: (data: { symptoms: string[] }) => api.post('/symptoms/check', data),
   getHistory: () => api.get('/symptoms/history'),
+};
+
+export const emergencyAPI = {
+  getHospitals: () => api.get('/emergency/hospitals'),
 };
 
 // ─────────────── PHASE 2: HOSPITAL & EMERGENCY APIs ───────────────

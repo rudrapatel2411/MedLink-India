@@ -1,7 +1,7 @@
 // MedLink India — Create Prescription Component (Smart Rx Builder)
 import { useState, useEffect } from 'react';
 import { prescriptionAPI } from '../../services/api';
-import { Plus, Trash2, Send, Pill, Mic, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Send, Pill, Mic, MicOff, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface Medicine {
@@ -16,6 +16,7 @@ interface Medicine {
 interface Props {
   patient: any;
   appointmentId?: string;
+  initialDiagnosis?: string;
   onSuccess: () => void;
 }
 
@@ -32,9 +33,9 @@ const COMMON_MEDICINES = [
   { name: 'Ranitidine', dosage: '150mg' },
 ];
 
-export default function CreatePrescription({ patient, appointmentId, onSuccess }: Props) {
+export default function CreatePrescription({ patient, appointmentId, initialDiagnosis, onSuccess }: Props) {
   const { t } = useLanguage();
-  const [diagnosis, setDiagnosis] = useState('');
+  const [diagnosis, setDiagnosis] = useState(initialDiagnosis || '');
   const [notes, setNotes] = useState('');
   const [medicines, setMedicines] = useState<Medicine[]>([
     { medicineName: '', dosage: '', frequency: '1-0-1', duration: '5 days', instructions: 'After food', quantity: '10' },
@@ -44,6 +45,7 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
   const [success, setSuccess] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [ddiAlert, setDdiAlert] = useState<string | null>(null);
+  const [drugAlerts, setDrugAlerts] = useState<string[]>([]);
 
   // DDI Alert Engine Logic
   useEffect(() => {
@@ -87,6 +89,114 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
     const updated = [...medicines];
     updated[index] = { ...updated[index], [field]: value };
     setMedicines(updated);
+    if (field === 'medicineName') {
+      checkDrugInteractions(updated);
+    }
+  };
+
+  const checkDrugInteractions = (medList: Medicine[]) => {
+    const allergies = (patient?.patientProfile?.allergies || '').toLowerCase();
+    const alerts: string[] = [];
+    if (!allergies) {
+      setDrugAlerts([]);
+      return;
+    }
+    
+    medList.forEach(m => {
+      const medName = m.medicineName.toLowerCase();
+      if (!medName) return;
+      
+      // Simple string matching for prototype
+      if (allergies.includes(medName) || medName.includes(allergies)) {
+        alerts.push(`CRITICAL: Patient has a known allergy to ${m.medicineName}!`);
+      } else if (allergies.includes('penicillin') && (medName.includes('amoxicillin') || medName.includes('ampicillin'))) {
+        alerts.push(`CRITICAL: ${m.medicineName} is a Penicillin derivative. Patient has Penicillin allergy!`);
+      } else if (allergies.includes('nsaid') && (medName.includes('ibuprofen') || medName.includes('diclofenac'))) {
+        alerts.push(`CRITICAL: ${m.medicineName} is an NSAID. Patient has NSAID allergy!`);
+      }
+    });
+    setDrugAlerts(alerts);
+  };
+
+  const toggleDictation = () => {
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('Voice dictation is not supported in this browser.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-IN';
+
+    recognition.onstart = () => setIsListening(true);
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript.toLowerCase();
+      parseVoicePrescription(transcript);
+    };
+
+    recognition.onerror = () => {
+      setError('Voice recognition failed.');
+      setIsListening(false);
+    };
+    
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+  };
+
+  const parseVoicePrescription = (transcript: string) => {
+    // Example: "Tab Metformin 500mg BD after meals for 30 days"
+    const newMed: Medicine = {
+      medicineName: 'Extracted Medicine',
+      dosage: 'Standard',
+      frequency: '1-0-1',
+      duration: '5 days',
+      instructions: 'After food',
+      quantity: '10'
+    };
+
+    if (transcript.includes('metformin')) {
+      newMed.medicineName = 'Metformin';
+    } else if (transcript.includes('amoxicillin')) {
+      newMed.medicineName = 'Amoxicillin';
+    } else if (transcript.includes('paracetamol') || transcript.includes('dolo')) {
+      newMed.medicineName = 'Paracetamol';
+    } else {
+      // Just take the first two words as medicine name if no match
+      const words = transcript.split(' ');
+      newMed.medicineName = words.slice(0, 2).join(' ') || transcript;
+    }
+
+    if (transcript.includes('500 mg') || transcript.includes('500mg')) newMed.dosage = '500mg';
+    else if (transcript.includes('650 mg') || transcript.includes('650mg')) newMed.dosage = '650mg';
+    
+    if (transcript.includes('bd') || transcript.includes('twice')) newMed.frequency = '1-0-1';
+    else if (transcript.includes('tds') || transcript.includes('three times')) newMed.frequency = '1-1-1';
+    else if (transcript.includes('od') || transcript.includes('once')) newMed.frequency = '1-0-0';
+
+    if (transcript.includes('30 days')) newMed.duration = '30 days';
+    else if (transcript.includes('10 days')) newMed.duration = '10 days';
+
+    if (transcript.includes('before meals') || transcript.includes('empty stomach')) newMed.instructions = 'Before meals';
+
+    const updatedMeds = [...medicines];
+    if (updatedMeds.length === 1 && !updatedMeds[0].medicineName) {
+      updatedMeds[0] = newMed;
+    } else {
+      updatedMeds.push(newMed);
+    }
+    
+    setMedicines(updatedMeds);
+    checkDrugInteractions(updatedMeds);
   };
 
   const addQuickMedicine = (med: { name: string; dosage: string }) => {
@@ -195,10 +305,31 @@ export default function CreatePrescription({ patient, appointmentId, onSuccess }
           <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
             {t('medicineList')} ({medicines.length})
           </label>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={addMedicine}>
-            <Plus size={12} /> {t('addMedicine')}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              type="button" 
+              className={`btn btn-sm ${isListening ? 'btn-danger' : 'btn-ghost'}`} 
+              onClick={toggleDictation}
+              title="Dictate prescription"
+            >
+              {isListening ? <><MicOff size={12} /> Listening...</> : <><Mic size={12} /> Dictate</>}
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={addMedicine}>
+              <Plus size={12} /> {t('addMedicine')}
+            </button>
+          </div>
         </div>
+
+        {drugAlerts.length > 0 && (
+          <div className="animate-in" style={{ background: 'var(--risk-critical)', color: 'white', padding: '12px', borderRadius: 'var(--radius-md)', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {drugAlerts.map((alert, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.85rem', fontWeight: 600 }}>
+                <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>{alert}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {medicines.map((med, i) => (

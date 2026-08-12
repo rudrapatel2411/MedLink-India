@@ -230,6 +230,17 @@ async function main() {
     },
   });
 
+  await prisma.symptomCheck.create({
+    data: {
+      userId: patient1.id,
+      symptoms: 'Severe chest pain radiating to left arm, sweating, shortness of breath',
+      riskLevel: 'CRITICAL',
+      triageResult: 'Possible Myocardial Infarction (Heart Attack)',
+      suggestedAction: 'Call Ambulance Immediately or Visit Nearest ER',
+      suggestedSpecialty: 'Cardiology',
+    },
+  });
+
   await prisma.appointment.create({
     data: {
       patientId: patient2.id,
@@ -239,7 +250,18 @@ async function main() {
       type: 'OPD',
       status: 'IN_QUEUE',
       tokenNumber: 5,
-      chiefComplaint: 'High Blood Pressure spike (160/100 mmHg) & Headache',
+      chiefComplaint: 'High Fever, joint pain, and severe headache for 2 days',
+    },
+  });
+
+  await prisma.symptomCheck.create({
+    data: {
+      userId: patient2.id,
+      symptoms: 'High fever, severe headache, joint pain, behind-eye pain',
+      riskLevel: 'HIGH',
+      triageResult: 'Possible Dengue Fever',
+      suggestedAction: 'Consult a General Physician and get CBC test done',
+      suggestedSpecialty: 'Internal Medicine',
     },
   });
 
@@ -471,7 +493,7 @@ async function main() {
     data: [
       { hospitalId: hospital1.id, patientName: 'Vikas Malhotra', bedType: 'ICU', bedNumber: 'ICU-B04', status: 'ALLOCATED' },
       { hospitalId: hospital1.id, patientName: 'Kavita Joshi', bedType: 'OXYGEN', bedNumber: 'OXY-A12', status: 'ALLOCATED' },
-      { hospitalId: hospital1.id, patientName: 'Rahul Kumar', bedType: 'NORMAL', bedNumber: 'NORMAL-W02', status: 'ALLOCATED' },
+      { hospitalId: hospital1.id, patientName: 'Rahul Kumar', bedType: 'ICU', bedNumber: 'ICU-C01', status: 'ALLOCATED' },
       { hospitalId: hospital2.id, patientName: 'Sanjay Deshmukh', bedType: 'ICU', bedNumber: 'ICU-02', status: 'ALLOCATED' },
       { hospitalId: hospital3.id, patientName: 'Sunita Patel', bedType: 'OXYGEN', bedNumber: 'OXY-05', status: 'ALLOCATED' },
     ],
@@ -553,7 +575,7 @@ async function main() {
   await prisma.bloodRequest.createMany({
     data: [
       { patientName: 'Amit Verma', bloodBankId: bloodBank1.id, bloodGroup: 'O-', unitsNeeded: 2, urgency: 'CRITICAL', status: 'APPROVED' },
-      { patientName: 'Vikas Malhotra', bloodBankId: bloodBank1.id, bloodGroup: 'B+', unitsNeeded: 3, urgency: 'HIGH', status: 'PENDING' },
+      { patientName: 'Vikas Malhotra', bloodBankId: bloodBank1.id, bloodGroup: 'AB+', unitsNeeded: 3, urgency: 'HIGH', status: 'PENDING' },
       { patientName: 'Ananya Sharma', bloodBankId: bloodBank1.id, bloodGroup: 'Platelets', unitsNeeded: 4, urgency: 'CRITICAL', status: 'APPROVED' },
     ],
   });
@@ -619,6 +641,8 @@ async function main() {
       { medicineName: 'Metformin SR 500mg', batchNo: 'MET-2026-B3', category: 'DIABETIC', quantity: 300, unitPrice: 42.00, expiryDate: '2026-09-10', manufacturer: 'Sun Pharma' },
       { medicineName: 'Insulin Glargine Pen (Cold-Chain 2-8°C)', batchNo: 'INS-2026-B7', category: 'DIABETIC', quantity: 35, unitPrice: 650.00, expiryDate: '2026-09-05', manufacturer: 'Biocon Biologics' },
       { medicineName: 'Amlodipine 5mg', batchNo: 'AML-2026-A1', category: 'CARDIAC', quantity: 200, unitPrice: 48.00, expiryDate: '2026-11-20', manufacturer: 'Torrent Pharma' },
+      { medicineName: 'Atorvastatin 10mg', batchNo: 'ATO-2026-C2', category: 'CARDIAC', quantity: 150, unitPrice: 125.00, expiryDate: '2026-10-20', manufacturer: 'Sun Pharma' },
+      { medicineName: 'Nitroglycerin 0.4mg', batchNo: 'NIT-2026-N1', category: 'CARDIAC', quantity: 50, unitPrice: 55.00, expiryDate: '2026-12-05', manufacturer: 'Abbott' },
       { medicineName: 'Azithromycin 500mg', batchNo: 'AZI-2026-X1', category: 'ANTIBIOTIC', quantity: 180, unitPrice: 120.00, expiryDate: '2026-08-28', manufacturer: 'Zydus Lifesciences' },
       { medicineName: 'Pantoprazole 40mg', batchNo: 'PAN-2026-P4', category: 'GASTRIC', quantity: 350, unitPrice: 55.00, expiryDate: '2026-12-10', manufacturer: 'Lupin Pharmaceuticals' },
     ],
@@ -631,9 +655,10 @@ async function main() {
         patientPhone: '+91-9988776655',
         medicinesJson: JSON.stringify([
           { name: 'Amlodipine 5mg', qty: 30, price: 48 },
-          { name: 'Dolo 650', qty: 10, price: 32.5 },
+          { name: 'Atorvastatin 10mg', qty: 30, price: 125 },
+          { name: 'Nitroglycerin 0.4mg', qty: 10, price: 55 },
         ]),
-        totalAmount: 80.50,
+        totalAmount: 5740.00,
         status: 'VERIFIED',
         deliveryAddress: '42, MG Road, Connaught Place, New Delhi',
       },
@@ -641,10 +666,9 @@ async function main() {
         patientName: 'Ananya Sharma',
         patientPhone: '+91-9876511223',
         medicinesJson: JSON.stringify([
-          { name: 'Azithromycin 500mg', qty: 5, price: 120 },
-          { name: 'Pantoprazole 40mg', qty: 10, price: 55 },
+          { name: 'Paracetamol 650mg (Dolo)', qty: 15, price: 32.50 },
         ]),
-        totalAmount: 175.00,
+        totalAmount: 487.50,
         status: 'DISPATCHED',
         deliveryAddress: 'Sector 14, Rohini, New Delhi',
       },
