@@ -233,8 +233,50 @@ model BedAllocation {
   dischargedAt    DateTime?
 
   hospital        Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  nursingLogs     NursingCareLog[]
+  doctorRounds    DoctorRoundHistory[]
+  bill            PatientBill?
 
   @@map("bed_allocations")
+}
+
+model NursingCareLog {
+  id              String   @id @default(uuid())
+  bedAllocationId String
+  nurseName       String
+  vitals          String?
+  notes           String
+  createdAt       DateTime @default(now())
+
+  bedAllocation   BedAllocation @relation(fields: [bedAllocationId], references: [id], onDelete: Cascade)
+
+  @@map("nursing_care_logs")
+}
+
+model DoctorRoundHistory {
+  id              String   @id @default(uuid())
+  bedAllocationId String
+  doctorName      String
+  notes           String
+  diagnosis       String?
+  createdAt       DateTime @default(now())
+
+  bedAllocation   BedAllocation @relation(fields: [bedAllocationId], references: [id], onDelete: Cascade)
+
+  @@map("doctor_round_history")
+}
+
+model PatientBill {
+  id              String   @id @default(uuid())
+  bedAllocationId String   @unique
+  totalAmount     Float    @default(0)
+  status          String   @default("PENDING") // PENDING, PAID
+  breakdownJson   String   // JSON array of bill items
+  updatedAt       DateTime @updatedAt
+
+  bedAllocation   BedAllocation @relation(fields: [bedAllocationId], references: [id], onDelete: Cascade)
+
+  @@map("patient_bills")
 }
 
 model EmergencySOS {

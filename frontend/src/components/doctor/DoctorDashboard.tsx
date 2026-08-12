@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { appointmentAPI, prescriptionAPI, healthRecordAPI } from '../../services/api';
 import {
   Users, Calendar, Stethoscope, Activity,
-  CheckCircle2, Play, X, Pill, Shield, Search, Brain
+  CheckCircle2, Play, X, Pill, Shield, Search, Brain,
+  HeartPulse, FileText, CreditCard
 } from 'lucide-react';
 import CreatePrescription from './CreatePrescription';
 import DocumentViewer from '../patient/DocumentViewer';
@@ -24,6 +25,14 @@ export default function DoctorDashboard() {
   const [selectedPatient] = useState<any>(null);
   const [selectedAppt, setSelectedAppt] = useState<any>(null);
   const [showCoPilot, setShowCoPilot] = useState(false);
+  const [activeSOS, setActiveSOS] = useState<any[]>([]);
+  const [claimsToSign, setClaimsToSign] = useState<any[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const openPrescription = (appt: any) => {
     // Legacy support for direct prescription
@@ -80,6 +89,20 @@ export default function DoctorDashboard() {
       setAppointments(allAppts);
       setPrescriptions(rxRes.data.data || []);
       setConsents(consentRes.data.data || []);
+
+      // Mock fetching ER SOS assigned to this hospital
+      setActiveSOS([
+        { id: 'sos-1', patientName: 'Unknown Trauma', address: 'Sector 14', assignedAmbulanceNo: 'ALS-04', eta: '5 Mins', status: 'EN_ROUTE' }
+      ]);
+      
+      // Mock fetching claims that need doctor's co-signature for Phase 5
+      setClaimsToSign([
+        { id: 'clm-1', claimNumber: 'CLM-2026-4411', patientName: 'Rajesh Kumar', amount: '₹14,500', diagnosis: 'Acute Bronchitis', status: 'PENDING_CO_SIGN' },
+        { id: 'clm-2', claimNumber: 'CLM-2026-5902', patientName: 'Sunita Sharma', amount: '₹8,200', diagnosis: 'Viral Pyrexia', status: 'PENDING_CO_SIGN' },
+        { id: 'clm-3', claimNumber: 'CLM-2026-6123', patientName: 'Vikram Singh', amount: '₹32,000', diagnosis: 'Dengue Fever', status: 'PENDING_CO_SIGN' },
+        { id: 'clm-4', claimNumber: 'CLM-2026-7781', patientName: 'Anjali Desai', amount: '₹12,450', diagnosis: 'Gastroenteritis', status: 'PENDING_CO_SIGN' },
+        { id: 'clm-5', claimNumber: 'CLM-2026-8890', patientName: 'Amit Patel', amount: '₹45,000', diagnosis: 'Type-2 Diabetes Complications', status: 'PENDING_CO_SIGN' }
+      ]);
 
       // Build today's OPD queue
       const today = new Date().toISOString().split('T')[0];
@@ -247,6 +270,7 @@ export default function DoctorDashboard() {
     { key: 'appointments', label: t('allAppointments'), icon: Calendar },
     { key: 'prescriptions', label: t('prescriptions'), icon: Pill },
     { key: 'vault', label: 'Patient Vault Access', icon: Shield },
+    { key: 'billing', label: 'Billing & Co-Sign', icon: CreditCard },
   ];
 
   return (
@@ -336,6 +360,26 @@ export default function DoctorDashboard() {
       <div className="animate-in animate-in-delay-3">
         {activeTab === 'opd' && (
           <div>
+            {/* ER Pre-Arrival Notifications (Phase 3) */}
+            {activeSOS.length > 0 && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid var(--risk-critical)', padding: '16px', borderRadius: 'var(--radius-md)', marginBottom: '24px', animation: 'pulse 2s infinite' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--risk-critical)', fontWeight: 800, marginBottom: '8px' }}>
+                  <HeartPulse size={18} /> 🚨 ER PRE-ARRIVAL NOTIFICATION
+                </div>
+                {activeSOS.map(sos => (
+                  <div key={sos.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                    <div>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{sos.patientName}</span> incoming from <span style={{ color: 'var(--text-secondary)' }}>{sos.address}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      <span style={{ color: 'var(--primary-400)' }}>Ambulance: {sos.assignedAmbulanceNo}</span>
+                      <span style={{ color: 'var(--emerald-500)', fontWeight: 700 }}>ETA: {sos.eta}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Current Patient */}
             {inProgress && (
               <div className="glass-card-static" style={{ padding: '20px', marginBottom: '20px', borderLeft: '4px solid var(--primary-500)' }}>
@@ -603,6 +647,48 @@ export default function DoctorDashboard() {
             )}
           </div>
         )}
+
+        {/* --- BILLING & CO-SIGNING TAB (PHASE 5) --- */}
+        {activeTab === 'billing' && (
+          <div className="animate-in">
+            <h3 style={{ fontWeight: 700, marginBottom: '16px' }}>Consultation Billing & Insurance Co-Signing</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
+              Review and electronically co-sign insurance claims for your patients before they are sent to the TPA engine.
+            </p>
+            <div className="dashboard-grid dashboard-grid-2">
+              {claimsToSign.map(claim => (
+                <div key={claim.id} className="glass-card" style={{ padding: '20px', borderLeft: '4px solid var(--accent-500)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <h4 style={{ fontWeight: 800, fontSize: '1.1rem' }}>{claim.claimNumber}</h4>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>Patient: {claim.patientName}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--primary-400)', marginTop: '2px' }}>Diagnosis: {claim.diagnosis}</div>
+                    </div>
+                    <span className="badge badge-in-progress">{claim.status.replace(/_/g, ' ')}</span>
+                  </div>
+                  <div style={{ background: 'var(--bg-input)', padding: '12px', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Amount</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)' }}>{claim.amount}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => setClaimsToSign(claimsToSign.filter(c => c.id !== claim.id))}>Reject</button>
+                    <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={() => {
+                      showToast('✅ Claim electronically co-signed with your digital medical signature.', 'success');
+                      setClaimsToSign(claimsToSign.filter(c => c.id !== claim.id));
+                    }}>
+                      <FileText size={14} style={{ marginRight: '6px' }} /> e-Co-Sign Claim
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {claimsToSign.length === 0 && (
+                <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+                  <p className="empty-state-title">No pending claims to co-sign.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Vault Document Viewer Modal (Shared with Patient) */}
@@ -643,6 +729,16 @@ export default function DoctorDashboard() {
             fetchData();
           }}
         />
+      )}
+
+      {/* Toast Notification Overlay */}
+      {toast && (
+        <div className={`toast toast-${toast.type} toast-card`}>
+          <div style={{ flex: 1 }}>{toast.message}</div>
+          <button onClick={() => setToast(null)} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', opacity: 0.8 }}>
+            <X size={16} />
+          </button>
+        </div>
       )}
     </div>
   );

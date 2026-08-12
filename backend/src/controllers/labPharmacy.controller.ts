@@ -39,7 +39,32 @@ export const createLabReport = asyncHandler(async (req: Request, res: Response) 
     },
   });
 
-  // Broadcast socket alert for lab report push
+  // Direct Lab-to-Vault Report Pushing
+  // Find patient by name (basic match for demo)
+  const names = patientName.split(' ');
+  const fName = names[0];
+  const lName = names.length > 1 ? names.slice(1).join(' ') : '';
+  
+  const patient = await prisma.user.findFirst({
+    where: {
+      role: 'PATIENT',
+      firstName: { contains: fName },
+    }
+  });
+
+  if (patient) {
+    await prisma.healthRecord.create({
+      data: {
+        userId: patient.id,
+        title: `${testName} Report`,
+        recordType: 'LAB_REPORT',
+        description: `Metrics: ${Object.keys(metrics).join(', ')}`,
+        fileUrl: '', // Could be a PDF link in real world
+      }
+    });
+  }
+
+  // Broadcast socket alert for lab report push & Critical Value Smart Escalation
   emitNotification('lab:report', {
     title: isCritical ? '🚨 CRITICAL DIAGNOSTIC LAB ALARM' : '🧪 NEW LAB REPORT PUSHED TO ABHA VAULT',
     message: `${testName} report ready for ${patientName}.${isCritical ? ' ' + report.criticalMessage : ''}`,

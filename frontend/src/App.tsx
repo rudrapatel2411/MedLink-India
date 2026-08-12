@@ -15,6 +15,7 @@ import LabDashboard from './components/panels/LabDashboard';
 import PharmacyDashboard from './components/panels/PharmacyDashboard';
 import InsuranceDashboard from './components/panels/InsuranceDashboard';
 import GovtDashboard from './components/panels/GovtDashboard';
+import NGODashboard from './components/panels/NGODashboard';
 import AdminDashboard from './components/panels/AdminDashboard';
 
 // Protected Route Wrapper
@@ -57,8 +58,9 @@ function Dashboard() {
       case 'INSURANCE_TPA':
         return <InsuranceDashboard />;
       case 'GOVT_OFFICIAL':
-      case 'NGO_WORKER':
         return <GovtDashboard />;
+      case 'NGO_WORKER':
+        return <NGODashboard />;
       case 'PLATFORM_ADMIN':
       case 'SUPER_ADMIN':
         return <AdminDashboard role={activeRole} />;

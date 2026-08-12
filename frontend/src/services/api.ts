@@ -114,3 +114,11 @@ export const insuranceGovtAPI = {
   reportOutbreak: (data: any) => api.post('/govt/outbreaks', data),
   getAdminStats: () => api.get('/admin/stats'),
 };
+
+// ─────────────── IPD APIs (Phase 2 Additions) ───────────────
+export const ipdAPI = {
+  getHospitalIPD: (hospitalId: string) => api.get(`/ipd/${hospitalId}`),
+  addNursingLog: (bedId: string, data: any) => api.post(`/ipd/${bedId}/nursing-log`, data),
+  addDoctorRound: (bedId: string, data: any) => api.post(`/ipd/${bedId}/doctor-round`, data),
+  generateBill: (bedId: string, data: any) => api.post(`/ipd/${bedId}/bill`, data),
+};

@@ -17,6 +17,7 @@ import symptomRoutes from './routes/symptom.routes';
 import hospitalEmergencyRoutes from './routes/hospitalEmergency.routes';
 import labPharmacyRoutes from './routes/labPharmacy.routes';
 import insuranceGovtRoutes from './routes/insuranceGovt.routes';
+import ipdRoutes from './routes/ipd.routes';
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use(`${API_PREFIX}/symptoms`, symptomRoutes);
 app.use(API_PREFIX, hospitalEmergencyRoutes);
 app.use(API_PREFIX, labPharmacyRoutes);
 app.use(API_PREFIX, insuranceGovtRoutes);
+app.use(API_PREFIX, ipdRoutes);
 
 // ─────────────────────────────────────────────────
 // 404 HANDLER
